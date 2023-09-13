@@ -1,10 +1,99 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+<br />
 
-<h1>Hello, world!</h1>
+<SearchBarItem OnSearchChanged="InputChanged"></SearchBarItem>
 
-Welcome to your new app.
+<br />
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+    @if (loading == true)
+    {
+        <Chase></Chase>
+    }
 
+<MudTable Items="@files" Dense="true" Hover="true" Bordered="true" Striped="true" @bind-SelectedItem="selectedItem">
+    <ColGroup>
+
+        <col style="width: 3%;" />
+        <col style="width: 37%;" />
+        <col style="width: 15%;" />
+        <col style="width: 40%;" />
+        <col style="width: 5%;" />
+
+    </ColGroup>
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Fichiers  </MudText>
+        <MudSpacer />
+
+    </ToolBarContent>
+
+    <HeaderContent>
+        <MudTh Class="ok-ternary">N° (@files.Count)</MudTh>
+
+        <MudTh Class="ok-ternary"> Name</MudTh>
+
+        <MudTh Class="ok-ternary">Type</MudTh>
+        <MudTh Class="ok-ternary">Preview</MudTh>
+
+        <MudTh Class="ok-ternary">Option</MudTh>
+        <MudTh Class="ok-ternary">
+            <MudIcon Icon="@Icons.Material.Rounded.ModeEdit"></MudIcon>
+        </MudTh>
+
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@(files.IndexOf(context)+1)</MudTd>
+        <MudTd DataLabel="Filename">@context.FileName</MudTd>
+
+        <MudTd DataLabel="Type">@context.Type</MudTd>
+        <MudTd DataLabel="pre">@context.TextToPreview</MudTd>
+        <MudTd DataLabel="Preview">
+            <MudGrid>
+
+                <MudItem xs="6" sm="3" lg="6">
+                    @if (context.Type != "application/pdf")
+                    {
+                        <iframe src='https://view.officeapps.live.com/op/embed.aspx?src=https://localhost:7104/api/file/@(context.Id)' width='100%' height='100%' frameborder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.</iframe>
+
+                    }
+                    else
+                    {
+
+                        <embed type="application/pdf" src="https://localhost:7104/api/file/@(context.Id)" />
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudTd>
+        <MudTd DataLabel="Option">
+
+            <MudGrid>
+
+                <MudItem xs="6" sm="3" lg="6">
+                    <MudIconButton OnClick="e=>ShowFile(context.Id)" Size="Size.Small" Class="d-inline-flex ok-primary" Icon="@Icons.Material.Filled.ArrowUpward" Variant="Variant.Filled" aria-label="arrowOutward"></MudIconButton>
+                </MudItem>
+            </MudGrid>
+
+
+        </MudTd>
+    </RowTemplate>
+
+
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+
+    <PagerContent>
+        @if (loading == true)
+        {
+            <Chase></Chase>
+        }
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+
+
+@code{
+
+
+}

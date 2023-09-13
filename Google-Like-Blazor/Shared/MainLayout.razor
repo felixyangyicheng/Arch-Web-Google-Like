@@ -1,20 +1,60 @@
 ﻿@inherits LayoutComponentBase
 
-<PageTitle>Google-Like-Blazor</PageTitle>
+<MudThemeProvider />
+<MudDialogProvider FullWidth="true"
+                   MaxWidth="MaxWidth.Large"
+                   CloseButton="true"
+                   DisableBackdropClick="true"
+                   Position="DialogPosition.Center"
+                   CloseOnEscapeKey="true" />
+<MudSnackbarProvider />
+<PageTitle>Google Like Search your file</PageTitle>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudLayout>
+    <MudAppBar Color="Color.Info">
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="DrawerToggle">
+            <MudIcon Icon="@Icons.Custom.Brands.Google" Title="Google" Size="Size.Large" />
+        </MudButton>
+        <MudSpacer />
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
 
-        <article class="content px-4">
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen" Color="Color.Info">
+        <MudNavMenu Class="mud-width-full" Color="Color.Surface">
+            <MudText Typo="Typo.h6" Class="px-4">Search your files</MudText>
+            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Like Go0ogle</MudText>
+            <MudDivider Class="my-2" />
+            <MudNavLink Href="/" IconColor="Color.Surface" Icon="@Icons.Custom.FileFormats.FilePdf">Documents</MudNavLink>
+            <MudDivider Class="my-2" />
+        </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
             @Body
-        </article>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+<footer id="footer">
 
+    <MudGrid Class="object-left-bottom justify-end lp-footer" Style="padding-top:10px">
+        <MudToolBar>
+            <MudText Typo="Typo.caption">
+                Copyright © 2022-2023 Stargazy pie.
+            </MudText>
+            <hr />
+            <MudLink Typo="Typo.caption" Underline="Underline.None" Href="/legal-informations" Style="color:black">Mentions légales</MudLink>
+        </MudToolBar>
+    </MudGrid>
+</footer>
+
+
+@code {
+
+
+        bool _drawerOpen = true;
+
+        void DrawerToggle()
+        {
+            _drawerOpen = !_drawerOpen;
+        }
+    }

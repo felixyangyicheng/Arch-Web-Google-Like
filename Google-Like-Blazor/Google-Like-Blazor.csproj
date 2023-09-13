@@ -9,4 +9,27 @@
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.10" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.21.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.21.0" />
+    <PackageReference Include="MudBlazor" Version="6.9.0" />
+    <PackageReference Include="BlazorPro.Spinkit" Version="1.2.0" />
+    <PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.2.23201" />
+    <PackageReference Include="FreeSpire.Doc" Version="11.6.0" />
+    <PackageReference Include="Serilog" Version="3.0.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
+    <PackageReference Include="PdfPig" Version="0.1.8" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Components\" />
+    <None Remove="Services\" />
+    <None Remove="Controllers\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Components\" />
+    <Folder Include="Services\" />
+    <Folder Include="Controllers\" />
+  </ItemGroup>
 </Project>

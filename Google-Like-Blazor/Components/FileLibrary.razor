@@ -1,0 +1,72 @@
+﻿
+
+
+
+<MudTable  Items="@FileModels" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<FileModel,bool>(FilterFunc1)"
+          @bind-SelectedItem="selectedItem"
+
+            >
+    <ColGroup>
+        
+        <col style="width: 5%;" />
+        <col style="width: 35%;" />
+        <col style="width: 35%;" />
+        <col style="width: 5%;" />
+
+    </ColGroup>
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Fichiers  </MudText>
+        <MudSpacer />
+
+        <MudSpacer />
+
+        <MudTextField @bind-Value="searchStringInit" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+
+    <HeaderContent>
+        <MudTh Class="ok-ternary">N° (@FileModels.Count)</MudTh>
+
+        <MudTh Class="ok-ternary"> Nom</MudTh>
+
+        <MudTh Class="ok-ternary">Catégorie</MudTh>
+
+        <MudTh Class="ok-ternary">Option</MudTh>
+        <MudTh Class="ok-ternary">
+            <MudIcon Icon="@Icons.Material.Rounded.ModeEdit"></MudIcon>
+        </MudTh>
+        
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@(FileModels.IndexOf(context)+1)</MudTd>
+            <MudTd DataLabel="Filename">@context.FileName</MudTd>
+  
+        <MudTd DataLabel="Type">@context.Type</MudTd>
+        <MudTd DataLabel="Option">
+
+                <MudGrid>
+
+                    <MudItem xs="6" sm="3" lg="6">
+                        <MudIconButton OnClick="e=>ShowFile(context.FileName)" Size="Size.Small" Class="d-inline-flex ok-primary" Icon="@Icons.Material.Filled.ArrowUpward" Variant="Variant.Filled" aria-label="arrowOutward"></MudIconButton>
+                    </MudItem>
+                </MudGrid>
+
+            
+        </MudTd>
+    </RowTemplate>
+    
+
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+    <EditButtonContent Context="button">
+        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
+    </EditButtonContent>
+    <PagerContent>
+        @if (loading == true)
+        {
+            <CircleFade></CircleFade>
+        }
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+

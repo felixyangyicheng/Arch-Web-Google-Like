@@ -1,0 +1,103 @@
+﻿@implements IAsyncDisposable
+@page "/upload"
+<div class="container text-center">
+    <div class="row">
+
+            <div class="col">
+
+            <FileLibrary @bind-UploadCompleted=uploadCompleted ></FileLibrary>
+        </div>
+        <div class="col">
+            <MudGrid>
+                <MudItem xs="12" lg="12">
+                    <div @ref="UploadElement" class="card">
+                        <div class="card-body  drop-zone">
+
+                            <h4>Faites copier-coller pour ajouter les fichiers</h4>
+                        </div>
+                        <InputFile OnChange="OnChange" class="form-control" accept=".pdf, .doc" multiple @ref="inputFile" />
+                    </div>
+                </MudItem>
+                <MudItem xs="12" lg="12">
+                    @*Notification:
+                    attribute multiple : autoriser téléchargement de plusieurs fichers
+                    attribute accept : accepter les types de ficher (content type)*@
+    
+                </MudItem>
+@*                <MudItem xs="12" lg="12">
+                    <MudButton FullWidth="true" @onclick=ReadFile Variant="Variant.Filled" Color="Color.Secondary">Upload Pdf</MudButton>
+                </MudItem>*@
+            </MudGrid>
+
+            @*<MudTable Items="@PdfUploadModels" Dense="true"Hover="true" Bordered="true"Striped="true"@bind-SelectedItem="selectedItem"CanCancelEdit="@canCancelEdit"CommitEditTooltip="Commit Edit"OnCommitEditClick="@(() => Snackbar.Add("Commit Edit Handler Invoked"))"RowEditPreview="BackupItem"RowEditCancel="ResetItemToOriginalValues"RowEditCommit="ItemHasBeenCommitted"IsEditRowSwitchingBlocked="@blockSwitch"ApplyButtonPosition="@applyButtonPosition"EditButtonPosition="@editButtonPosition"EditTrigger="@editTrigger">*@
+
+  
+
+        </div>
+
+    </div>
+
+</div>
+@code {
+
+    private string searchStringInit = "";
+    private List<string> editEvents = new();
+
+    private PdfUploadModel selectedItem = null;
+    private bool canCancelEdit = true;
+    private bool blockSwitch = false;
+    private string searchString = "";
+    private PdfUploadModel selectedItem1 = null;
+    private PdfUploadModel elementBeforeEdit;
+    private HashSet<PdfUploadModel> selectedItems1 = new HashSet<PdfUploadModel>();
+    private TableApplyButtonPosition applyButtonPosition = TableApplyButtonPosition.End;
+    private TableEditButtonPosition editButtonPosition = TableEditButtonPosition.End;
+    private TableEditTrigger editTrigger = TableEditTrigger.RowClick;
+    private IEnumerable<PdfUploadModel> Elements = new List<PdfUploadModel>();
+    private void AddEditionEvent(string message)
+    {
+        editEvents.Add(message);
+        StateHasChanged();
+    }
+    private void ClearEventLog()
+    {
+        editEvents.Clear();
+    }
+    private void BackupItem(object element)
+    {
+        elementBeforeEdit = new()
+        {
+
+            FileName = ((PdfUploadModel)element).FileName,
+            Type = ((PdfUploadModel)element).Type
+        };
+        // AddEditionEvent($"RowEditPreview event: made a backup of Element {((Element)element).Name}");
+    }
+
+    private void ItemHasBeenCommitted(object element)
+    {
+        //AddEditionEvent($"RowEditCommit event: Changes to Element {((Element)element).Name} committed");
+    }
+
+    private void ResetItemToOriginalValues(object element)
+    {
+
+        ((PdfUploadModel)element).FileName = elementBeforeEdit.FileName;
+        ((PdfUploadModel)element).Type = elementBeforeEdit.Type;
+        //((PdfUploadModel)element).Position = elementBeforeEdit.Position;
+        AddEditionEvent($"RowEditCancel event: Editing of Element {((PdfUploadModel)element).FileName} canceled");
+    }
+
+    private bool FilterFunc1(PdfUploadModel element) => FilterFunc(element, searchStringInit);
+
+    private bool FilterFunc(PdfUploadModel element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        if (element.FileName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+}
