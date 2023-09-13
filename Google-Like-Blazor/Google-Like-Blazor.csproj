@@ -26,10 +26,12 @@
     <None Remove="Components\" />
     <None Remove="Services\" />
     <None Remove="Controllers\" />
+    <None Remove="logs\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Components\" />
     <Folder Include="Services\" />
     <Folder Include="Controllers\" />
+    <Folder Include="logs\" />
   </ItemGroup>
 </Project>
