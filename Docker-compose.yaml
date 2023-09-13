@@ -9,9 +9,9 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     expose:
-      - 5432
+      - 27017
     ports:
-      - '5432:5432'
+      - '27017:27017'
     # networks:
     #   - backend
 
@@ -21,7 +21,7 @@ services:
     restart: always
     container_name: gl-blzapp
     depends_on:
-      - db
+      - gl-mongo
     environment:
         - Logging__Loglevel__Default=Debug
         - Logging__Loglevel__Microsoft.AspNetCore=Debug
@@ -30,7 +30,7 @@ services:
       - '8080:80'
       - '8081:443'
     links:
-      - db
+      - gl-mongo
 
     # networks:
     #   - backend

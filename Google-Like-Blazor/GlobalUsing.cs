@@ -1,6 +1,5 @@
 ﻿global using Microsoft.Extensions.Options;
-global using DocumentFormat.OpenXml;
-global using DocumentFormat.OpenXml.Packaging;
+
 global using Microsoft.AspNetCore.Components;
 global using BlazorPro.Spinkit;
 global using MongoDB.Driver;
