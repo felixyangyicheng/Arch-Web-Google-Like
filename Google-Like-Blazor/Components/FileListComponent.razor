@@ -1,0 +1,72 @@
+﻿
+
+@page "/docs"
+@if (FileViewModels == null)
+{
+    <Bounce></Bounce>
+}
+else
+{
+
+    <div class="ma-0" style="height:60vh;overflow: auto;">
+        <MudGrid Style="  width:100%" id="eleScroll">
+
+            <Virtualize ItemsProvider="@LoadFileViewModels" Context="post" OverscanCount="16">
+                <ItemContent>
+                    <MudCard Class="flex-row" Elevation="1" Style="width:100%; padding:5px ; overflow:auto" Outlined="true">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">
+                                    @post.FileName
+                                </MudText>
+            
+                            </CardHeaderContent>
+             
+                        </MudCardHeader>
+
+                        <MudCardContent Class="d-flex">
+
+                            @((MarkupString)post.Id)
+
+                        </MudCardContent>
+                        <MudOverlay Visible="isVisible" DarkBackground="true" Absolute="true">
+                            <MudAvatarGroup Max="8" Spacing="3" MaxColor="Color.Warning">
+                                @if (post.Type != "application/pdf")
+                                {
+                                    <iframe src='https://view.officeapps.live.com/op/embed.aspx?src=https://localhost:7104/api/file/@(post.Id)' width='100%' height='100%' frameborder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.</iframe>
+
+                                }
+                                else
+                                {
+
+                                    <embed type="application/pdf" src="https://localhost:7104/api/file/@(post.Id)" />
+                                }
+
+                            </MudAvatarGroup>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(e => ToggleOverlay(false))">Hide</MudButton>
+                        </MudOverlay>
+                        <MudExpansionPanels MultiExpansion="true" DisableBorders="true" Elevation="0" Dense="true">
+
+    
+
+
+                        </MudExpansionPanels>
+                        <MudCardActions>
+                            <MudIconButton Size="Size.Small" Icon="@Icons.Sharp.Add" Variant="Variant.Filled" Color="Color.Success" @onclick="()=>OpenDialogCreateComment(post)">+</MudIconButton>
+
+                        </MudCardActions>
+                    </MudCard>
+                </ItemContent>
+                <Placeholder>
+                    <MudCard Style="width=100%">
+
+                        <Bounce Color="#059b93"></Bounce>
+                    </MudCard>
+                </Placeholder>
+            </Virtualize>
+        </MudGrid>
+    </div>
+
+
+
+}

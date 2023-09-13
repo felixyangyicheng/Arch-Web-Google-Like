@@ -21,6 +21,7 @@
     <PackageReference Include="Serilog" Version="3.0.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
     <PackageReference Include="PdfPig" Version="0.1.8" />
+    <PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Components\" />

@@ -76,7 +76,7 @@ namespace Google_Like_Blazor.Services
             var bucket = new GridFSBucket(mongoDatabase);
             var filter = Builders<GridFSFileInfo>.Filter.And(
                             Builders<GridFSFileInfo>.Filter.Where(x => 
-                            x.Filename.Contains(fileName)));
+                            x.Filename.Contains(fileName)||x.Metadata.Contains(fileName)));
             var sort = Builders<GridFSFileInfo>.Sort.Descending(x => x.Filename);
             var options = new GridFSFindOptions
             {
@@ -100,10 +100,13 @@ namespace Google_Like_Blazor.Services
         public async Task<ObjectId> UploadFile(string fileName, string fileExtention, byte[] file)
         {
             var bucket = new GridFSBucket(mongoDatabase);
+
+
+
             var options = new GridFSUploadOptions
             {
                 ChunkSizeBytes = 524288, // 63KB
-                //ContentType=
+                
                 Metadata = new BsonDocument
                 {
                     { "resolution", "1080P" },

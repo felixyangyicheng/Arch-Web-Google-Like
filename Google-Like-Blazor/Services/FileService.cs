@@ -60,17 +60,26 @@ namespace Google_Like_Blazor.Services
 
                     using (var pdfDocument = PdfDocument.Open(item.Content))
                     {
+                        logger.LogInformation($"Trace pages number, {pdfDocument.NumberOfPages}, {pdfDocument.Information}, ");
+
                    
                         foreach (var page in pdfDocument.GetPages())
                         {
-  
-                            #region  Segment page
+                       
+                        #region  Segment page
                             var pageSegmenter = DocstrumBoundingBoxes.Instance;
-                            var pageSegmenterOptions = new DocstrumBoundingBoxes.DocstrumBoundingBoxesOptions(){ };
-                        #endregion
+                            var pageSegmenterOptions = new DocstrumBoundingBoxes.DocstrumBoundingBoxesOptions(){  };
+                            #endregion
 
                             var words = page.GetWords();
-                            foreach (Word word in words)
+
+                         var text = page.Text;
+
+
+
+                        logger.LogInformation($"Total words, {words}");
+
+                        foreach (Word word in words)
                             {
                                 if (word.Text.ToLower().Contains(keyword.ToLower()))
                                 {
@@ -89,17 +98,13 @@ namespace Google_Like_Blazor.Services
 
                                 }
 
-
                                 var orderedTextBlocks = readingOrder.Get(textBlocks);
                                
                                     foreach (var block in orderedTextBlocks)
                                     {
 
-                                        logger.LogInformation($"Trace orderedTextBlocks, {orderedTextBlocks.Count()}");
-                                   
-
-                                    logger.LogInformation($"Trace block text, {block.Text.Normalize(NormalizationForm.FormKC)}");
-
+                               
+                                        logger.LogInformation($"Trace block text, {block.Text}");
                                         var areaWithoutBorders = block.BoundingBox;
                                         var lines = block.TextLines;
                                         logger.LogInformation($"Trace lines, {lines.Count()}");
@@ -138,8 +143,8 @@ namespace Google_Like_Blazor.Services
                 };
                 if (vm.TextToPreview.Contains(keyword))
                 {
-
-                result.Add(vm);
+                    
+                    result.Add(vm);
                 }
                 logger.LogInformation($"add viewModel in to result list {vm.FileName}");
             }

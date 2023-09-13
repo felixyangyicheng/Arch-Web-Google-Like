@@ -1,4 +1,5 @@
 ﻿
+using Blazored.LocalStorage;
 using Google_Like_Blazor.Data;
 
 using Microsoft.AspNetCore.ResponseCompression;
@@ -18,6 +19,9 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddFileReaderService();
+
+        builder.Services.AddBlazoredLocalStorage();
+
         // Add services to the container.
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();

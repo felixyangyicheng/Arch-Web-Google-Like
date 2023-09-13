@@ -1,5 +1,8 @@
 ﻿global using Microsoft.Extensions.Options;
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 global using Microsoft.AspNetCore.Components;
 global using BlazorPro.Spinkit;
 global using MongoDB.Driver;
