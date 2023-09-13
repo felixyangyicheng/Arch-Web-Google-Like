@@ -1,0 +1,41 @@
+version: '1'
+services:
+
+  gl-mongo:
+    image: mongo
+    restart: always
+    container_name: gl-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    expose:
+      - 5432
+    ports:
+      - '5432:5432'
+    # networks:
+    #   - backend
+
+  gl-blzapp:
+    build: ./Google-Like-Blazor/
+    # image: GL-blzapp
+    restart: always
+    container_name: gl-blzapp
+    depends_on:
+      - db
+    environment:
+        - Logging__Loglevel__Default=Debug
+        - Logging__Loglevel__Microsoft.AspNetCore=Debug
+        - ASPNETCORE_URLS=http://+:80
+    ports: 
+      - '8080:80'
+      - '8081:443'
+    links:
+      - db
+
+    # networks:
+    #   - backend
+    #   - frontend
+  
+# networks:
+#   backend:
+#   frontend:
