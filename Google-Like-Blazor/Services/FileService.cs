@@ -1,5 +1,7 @@
 ﻿
 
+using System.Text;
+using UglyToad.PdfPig.Core;
 using Page = UglyToad.PdfPig.Content.Page;
 
 namespace Google_Like_Blazor.Services
@@ -58,52 +60,89 @@ namespace Google_Like_Blazor.Services
 
                     using (var pdfDocument = PdfDocument.Open(item.Content))
                     {
+                   
                         foreach (var page in pdfDocument.GetPages())
                         {
   
                             #region  Segment page
                             var pageSegmenter = DocstrumBoundingBoxes.Instance;
                             var pageSegmenterOptions = new DocstrumBoundingBoxes.DocstrumBoundingBoxesOptions(){ };
-                            #endregion
-                            foreach (Word word in page.GetWords())
+                        #endregion
+
+                            var words = page.GetWords();
+                            foreach (Word word in words)
                             {
-                                if (word.Text.ToLower()==(keyword.ToLower()))
+                                if (word.Text.ToLower().Contains(keyword.ToLower()))
                                 {
+                                    List<Word> filtred = words.Where(x => x.Text.ToLower().Contains(keyword.ToLower())).ToList();
+                                logger.LogInformation($"Trace filtred, {filtred.Count()}");
 
 
+                                var readingOrder = UnsupervisedReadingOrderDetector.Instance;
+                             
 
-                                    var readingOrder = UnsupervisedReadingOrderDetector.Instance;
-                                    var textBlocks = pageSegmenter.GetBlocks(page.GetWords());
-                                
-                                    var orderedTextBlocks = readingOrder.Get(textBlocks);
+                                    var textBlocks = pageSegmenter.GetBlocks(filtred);
+                                    logger.LogInformation($"Trace textBlocks, {textBlocks.Count()}");
+                                foreach (var tb in textBlocks)
+                                {
+                                    logger.LogInformation($"Trace tb, {tb.Text}");
 
+                                }
+
+
+                                var orderedTextBlocks = readingOrder.Get(textBlocks);
+                               
                                     foreach (var block in orderedTextBlocks)
                                     {
-                                        logger.LogInformation($"Trace, {block.Text.Normalize(NormalizationForm.FormKC)}");
 
-                                        sb.Append(block.Text.Normalize(NormalizationForm.FormKC)); // normalise text
+                                        logger.LogInformation($"Trace orderedTextBlocks, {orderedTextBlocks.Count()}");
+                                   
+
+                                    logger.LogInformation($"Trace block text, {block.Text.Normalize(NormalizationForm.FormKC)}");
+
+                                        var areaWithoutBorders = block.BoundingBox;
+                                        var lines = block.TextLines;
+                                        logger.LogInformation($"Trace lines, {lines.Count()}");
+
+                                    foreach (var t in lines)
+                                    {
+                                        logger.LogInformation($"Trace, {t.Text.Normalize(NormalizationForm.FormKC)}");
+
+                                        var pageText = string.Join(" ", t.Text.Normalize(NormalizationForm.FormKC));                       
+                                        sb.AppendJoin(" ", pageText);
+                                        //sb.Append(pageText);
+                                    }
+                                  //  sb.Append(block.Text.Normalize(NormalizationForm.FormKC)); // normalise text
                          
                                     }
 
-                                }                              
+    
+
+                            }                              
 
                             }
 
                         }
+                
+
 
                     }
 
-                    FileViewModel vm = new FileViewModel
-                    {
-                        Id = item.Id,
-                        Content = item.Content,
-                        Type = item.Type,
-                        TextToPreview = sb.ToString(),
-                        FileName = item.FileName
-                    };
-                    result.Add(vm);
-                    logger.LogInformation($"add viewModel in to result list {vm.TextToPreview}");
+                FileViewModel vm = new FileViewModel
+                {
+                    Id = item.Id,
+                    Content = item.Content,
+                    Type = item.Type,
+                    TextToPreview = sb.ToString(),
+                    FileName = item.FileName
+                };
+                if (vm.TextToPreview.Contains(keyword))
+                {
+
+                result.Add(vm);
                 }
+                logger.LogInformation($"add viewModel in to result list {vm.FileName}");
+            }
              
             
 

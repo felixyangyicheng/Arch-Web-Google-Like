@@ -21,8 +21,10 @@ namespace Google_Like_Blazor.Pages
 
         protected override async Task OnParametersSetAsync()
         {
-           files=await _file.SearchInContent("besoin");
+            loading = true;
+            files =await _file.SearchInContent("climatique");
             StateHasChanged();
+            loading = false; ;
             await base.OnParametersSetAsync();
         }
 
