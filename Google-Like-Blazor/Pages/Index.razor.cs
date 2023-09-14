@@ -26,7 +26,7 @@ namespace Google_Like_Blazor.Pages
             if (firstRender)
             {
                 loading = true;
-                var tempFiles = await _repositoryCache.GetFiles("climatique");
+                var tempFiles = await _repositoryCache.GetFiles("tennis");
                 files = tempFiles;
                 FileCount = files.Count();
                 loading = false;
@@ -41,7 +41,7 @@ namespace Google_Like_Blazor.Pages
             StateHasChanged();
 
             loading = true;
-            files =await _file.SearchInFileName("climatique");
+            files =await _file.SearchInFileName("tennis");
             StateHasChanged();
             loading = false;
 
@@ -55,12 +55,14 @@ namespace Google_Like_Blazor.Pages
 
                 loading = true;
                 //files = await _file.SearchByNameAsync(searchWord);
+                StateHasChanged();
 
                 files = await _file.SearchInFileName(searchWord);
                 loading = false;
                 StateHasChanged();
 
                 loading = true;
+                StateHasChanged();
 
                 var tempFiles = await _repositoryCache.GetFiles(searchWord);
                 files = tempFiles;

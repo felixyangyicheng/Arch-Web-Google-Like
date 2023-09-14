@@ -11,7 +11,42 @@
   <CircleFade Color="rgba(0,255,0,0.3)"/>
     }
 <p>There is : @FileCount file(s)</p>
-<MudTable Items="@files" Dense="true" Hover="true" Bordered="true" Striped="true" @bind-SelectedItem="selectedItem">
+
+<MudExpansionPanels Dense="true">
+        @foreach (var f in files)
+        {
+            <MudExpansionPanel Text="@f.FileName">
+                <MudGrid>
+ 
+                    <MudItem xs="6" sm="3" lg="3">
+                       <MudCard Style="overflow:auto">
+                           <MudCardHeader>
+                               @f.FileName
+                           </MudCardHeader>
+                           <MudCardContent>
+                               @((MarkupString)f.TextToPreview)
+                           </MudCardContent>
+                       </MudCard>
+                    </MudItem>
+                    <MudItem xs="6" sm="3" lg="9">
+                        @if (f.Type != "application/pdf")
+                        {
+                            <iframe src='https://view.officeapps.live.com/op/embed.aspx?src=https://localhost:7104/api/file/@(f.Id)' width='100%' height='100%' frameborder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.</iframe>
+
+                        }
+                        else
+                        {
+
+                            <embed height="750vh" width="1200vw" type="application/pdf" src="https://localhost:7104/api/file/@(f.Id)" />
+                        }
+                    </MudItem>
+                </MudGrid>
+            </MudExpansionPanel>
+        }
+</MudExpansionPanels>
+
+
+@*<MudTable Items="@files" Dense="true" Hover="true" Bordered="true" Striped="true" @bind-SelectedItem="selectedItem" Height="80%" Breakpoint="Breakpoint.Sm" HorizontalScrollbar="true">
     <ColGroup>
 
         <col style="width: 3%;" />
@@ -32,8 +67,8 @@
 
         <MudTh Class="ok-ternary"> Name</MudTh>
 
-        <MudTh Class="ok-ternary" >Type</MudTh>
-        <MudTh Class="ok-ternary" >Preview</MudTh>
+        <MudTh Class="ok-ternary">Type</MudTh>
+        <MudTh Class="ok-ternary">Preview</MudTh>
 
         <MudTh Class="ok-ternary">Option</MudTh>
         <MudTh Class="ok-ternary">
@@ -41,7 +76,8 @@
         </MudTh>
 
     </HeaderContent>
-    <RowTemplate>
+    
+    <RowTemplate >
         <MudTd>@(files.IndexOf(context)+1)</MudTd>
         <MudTd DataLabel="Filename">@context.FileName</MudTd>
 
@@ -85,11 +121,13 @@
     <PagerContent>
         @if (loading == true)
         {
-            <CircleFade Color="rgba(0,255,0,0.3)"/>
+            <CircleFade Color="rgba(0,255,0,0.3)" />
         }
         <MudTablePager />
     </PagerContent>
-</MudTable>
+</MudTable>*@
+
+
 
 
 
