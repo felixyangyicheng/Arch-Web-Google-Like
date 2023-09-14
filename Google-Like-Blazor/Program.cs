@@ -23,7 +23,7 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddFileReaderService();
         builder.Services.AddMemoryCache();
-
+        builder.Services.AddScoped<MemoryStorageUtility>();
         builder.Services.AddSingleton<MemoryCacheConfig>();
         builder.Services.AddScoped<RepositoryCache>();
 

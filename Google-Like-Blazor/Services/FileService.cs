@@ -3,6 +3,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using MongoDB.Driver;
 using UglyToad.PdfPig.Core;
 using static MudBlazor.CategoryTypes;
 using Page = UglyToad.PdfPig.Content.Page;
@@ -25,6 +26,11 @@ namespace Google_Like_Blazor.Services
             _collection = mongoDatabase.GetCollection<FileModel>(
                 dbSettings.Value.ThreedCollectionName);
             this.logger = logger;
+        }
+
+        public FileService(IMongoCollection<FileModel> collection)
+        {
+            _collection = collection;
         }
 
         public async Task<bool> CreateAsync(FileModel obj)
@@ -51,43 +57,30 @@ namespace Google_Like_Blazor.Services
         { 
             var result = new List<FileViewModel>();
 
-            var list= await _collection.Find(x=>x.Type.Contains("pdf")).ToListAsync();
-            
-                foreach (var item in list)
-                {
-
-                    var sb = new StringBuilder();
-
-                    using (var pdfDocument = PdfDocument.Open(item.Content))
-                    {
-   
-                        foreach (var page in pdfDocument.GetPages())
-                        {
-                       
-             
-
-                            var words = page.GetWords();
+            var list= await _collection.Find(x=>x.Type.Contains("pdf")).ToListAsync();           
+            foreach (var item in list)
+            {
+                var sb = new StringBuilder();
+                using (var pdfDocument = PdfDocument.Open(item.Content))
+                { 
+                    foreach (var page in pdfDocument.GetPages())
+                    {                                
+                        var words = page.GetWords();
                         
-                             var text = page.Text;
+                        var text = page.Text;
                 
-                            var r = new Regex(@"[^.!?;]*" + keyword + @"[^.!?;]*");
-                            var m = r.Matches(text);
+                        var r = new Regex(@"[^.!?;]*" + keyword + @"[^.!?;]*");
+                        var m = r.Matches(text);
 
-                            var res = Enumerable.Range(0, m.Count).Select(index => m[index].Value).ToList();
+                        var res = Enumerable.Range(0, m.Count).Select(index => m[index].Value).ToList();
 
-                            foreach (var itm in res)
-                            {
+                        foreach (var itm in res)
+                        {
                             string CleanedString = Regex.Replace(itm, keyword, $"<span class='keyword'>{keyword}</span>");
-                            sb.Append("<p> [page " + page.Number+ "] << " + CleanedString + " >> </p>");
-                        
-                            }
-
-
+                            sb.Append("<p> [page " + page.Number+ "] << " + CleanedString + " >> </p>");                        
                         }
-
-
-
                     }
+                }
 
                 FileViewModel vm = new FileViewModel
                 {
@@ -97,20 +90,18 @@ namespace Google_Like_Blazor.Services
                     TextToPreview = sb.ToString(),
                     FileName = item.FileName
                 };
-                if (vm.TextToPreview.Contains(keyword))
+                if (vm.TextToPreview.Contains(keyword)||vm.FileName.Contains(keyword))
                 {
                     
                     result.Add(vm);
                 }
      
             }
-
             return result;
         }
 
-
         public async Task<List<FileModel>> SearchByNameAsync(string name) =>
-            await _collection.Find(x => x.FileName.ToLowerInvariant().Contains( name.ToLowerInvariant())).ToListAsync();
+            await _collection.Find(x => x.FileName.ToLowerInvariant().Contains( name.ToLowerInvariant()) && x.Type.Contains("pdf")).ToListAsync();
 
         public async Task<bool> UpdateAsync(string id, FileModel obj)
         {
@@ -118,12 +109,15 @@ namespace Google_Like_Blazor.Services
 
         }
 
+
+
+
         public async Task<List<FileViewModel>> SearchInFileName(string keyword)
         {
             var result = new List<FileViewModel>();
 
             logger.LogInformation("Created new list for result");
-            var list = await _collection.Find(x => x.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant())).ToListAsync();
+            var list = await _collection.Find(x => x.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant()) && x.Type.Contains("pdf")).ToListAsync();
 
              result = (from x in list
                           select new FileViewModel
@@ -134,7 +128,7 @@ namespace Google_Like_Blazor.Services
                               TextToPreview = "",
                               FileName = x.FileName
                           }
-                          ).ToList();
+                        ).ToList();
 
             return result;
         }

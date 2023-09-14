@@ -6,9 +6,9 @@
 
 <br />
 
-    @if (loading == true)
+    @if (loading)
     {
-  <CircleFade Color="rgba(0,255,0,0.3)"/>
+        <CircleFade Color="rgba(33,150,243,0.3)"/>
     }
 <p>There is : @FileCount file(s)</p>
 
@@ -18,27 +18,21 @@
             <MudExpansionPanel Text="@f.FileName">
                 <MudGrid>
  
-                    <MudItem xs="6" sm="3" lg="3">
+                    <MudItem xs="12" sm="12" lg="3">
                        <MudCard Style="overflow:auto">
                            <MudCardHeader>
                                @f.FileName
                            </MudCardHeader>
-                           <MudCardContent>
+                           <MudCardContent Style="max-height:450px; overflow-y:scroll">
                                @((MarkupString)f.TextToPreview)
                            </MudCardContent>
                        </MudCard>
                     </MudItem>
-                    <MudItem xs="6" sm="3" lg="9">
-                        @if (f.Type != "application/pdf")
-                        {
-                            <iframe src='https://view.officeapps.live.com/op/embed.aspx?src=https://localhost:7104/api/file/@(f.Id)' width='100%' height='100%' frameborder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.</iframe>
-
-                        }
-                        else
-                        {
+                    <MudItem xs="12" sm="12" lg="9">
+             
 
                             <embed height="750vh" width="1200vw" type="application/pdf" src="https://localhost:7104/api/file/@(f.Id)" />
-                        }
+                        
                     </MudItem>
                 </MudGrid>
             </MudExpansionPanel>

@@ -17,6 +17,10 @@ namespace Google_Like_Blazor.Services
                 dbSettings.Value.DatabaseName);
 
         }
+        public GridSfService(IMongoClient mongoClient)
+        {
+            mongoClient = mongoClient;
+        }
         /// <summary>
         /// Supprimer fichier
         /// </summary>

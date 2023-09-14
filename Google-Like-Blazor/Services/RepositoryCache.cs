@@ -37,7 +37,23 @@ namespace Google_Like_Blazor.Services
             }
             return cacheResult;
         }
+        //public string GetBookTags()
+        //{
+        //    const string cacheKey = "_BookTags";
+        //    // 連線到 Redis
+        //    var redisDb = _redisCache.Connection.GetDatabase();
+        //    // 取得快取資料
+        //    var cacheResult = redisDb.StringGet(cacheKey);
 
+        //    if (string.IsNullOrWhiteSpace(cacheResult))
+        //    {
+        //        cacheResult = _repository.GetBookTags().Aggregate((i, j) => i + "," + j);
+        //        // 重新加入快取資料並設定到期時間
+        //        redisDb.StringSet(cacheKey, cacheResult, TimeSpan.FromSeconds(10));
+        //    }
+
+        //    return cacheResult;
+        //}
         public async Task<List<FileViewModel>> GetFiles(string cacheKey)
         {
            

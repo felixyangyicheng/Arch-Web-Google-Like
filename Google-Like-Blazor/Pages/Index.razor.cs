@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization.Formatters.Binary;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 namespace Google_Like_Blazor.Pages
 {
@@ -7,6 +8,7 @@ namespace Google_Like_Blazor.Pages
 	{
         [Inject] RepositoryCache _repositoryCache { get; set; }
         [Inject] IFileRepo _file { get; set; }
+        [Inject] MemoryStorageUtility MemoryStorageUtility { get; set; }
         /// <summary>
         /// loadinf indication
         /// </summary>
@@ -48,6 +50,30 @@ namespace Google_Like_Blazor.Pages
             await base.OnParametersSetAsync();
         }
 
+
+
+        public async Task SetValue(string keyword)
+        {
+            MemoryStorageUtility.Storage[keyword] = files;
+        }
+
+        public async Task<List<FileViewModel>> GetValueFromMemoryStorage(string keyword)
+        {
+            if (MemoryStorageUtility.Storage.TryGetValue(keyword, out var value))
+            {
+                return  (List<FileViewModel>) value;
+            }
+            else
+            {
+                return  await _file.SearchInContent(keyword);
+            }
+        }
+
+        public void ClearAll()
+        {
+            MemoryStorageUtility.Storage.Clear();
+        }
+
         protected async Task InputChanged(string searchWord)
         {
             if (!string.IsNullOrWhiteSpace(searchWord))
@@ -62,9 +88,10 @@ namespace Google_Like_Blazor.Pages
                 StateHasChanged();
 
                 loading = true;
-                StateHasChanged();
+     
 
-                var tempFiles = await _repositoryCache.GetFiles(searchWord);
+                var tempFiles = await GetValueFromMemoryStorage(searchWord);
+                //var tempFiles = await _file.SearchInFileName(searchWord);
                 files = tempFiles;
                 FileCount = files.Count;
                 SearchWord = searchWord;
