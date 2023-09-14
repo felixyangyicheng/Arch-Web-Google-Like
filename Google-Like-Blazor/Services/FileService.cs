@@ -77,8 +77,8 @@ namespace Google_Like_Blazor.Services
 
                             foreach (var itm in res)
                             {
-
-                                sb.Append("[page " + page.Number+ "] << " + itm+ " >>");
+                            string CleanedString = Regex.Replace(itm, keyword, $"<span class='keyword'>{keyword}</span>");
+                            sb.Append("<p> [page " + page.Number+ "] << " + CleanedString + " >> </p>");
                         
                             }
 

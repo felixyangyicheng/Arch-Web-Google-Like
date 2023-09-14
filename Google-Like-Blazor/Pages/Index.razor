@@ -46,7 +46,7 @@
         <MudTd DataLabel="Filename">@context.FileName</MudTd>
 
         <MudTd DataLabel="Type">@context.Type</MudTd>
-        <MudTd DataLabel="pre" Style="max-height:20%; overflow:auto">@context.TextToPreview</MudTd>
+        <MudTd DataLabel="pre" Style="max-height:20%; overflow:auto">@((MarkupString)context.TextToPreview)</MudTd>
         <MudTd DataLabel="Preview">
             <MudGrid>
 
