@@ -19,6 +19,7 @@ namespace Google_Like_Blazor.Pages
         ///
         public string SearchWord { get; set; }
         public int FileCount { get; set; } = 0;
+        public long elapsedMs { get; set; } = 0;
         public FileViewModel selectedItem { get; set; } = new();
         public List<FileViewModel> files { get; set; } = new();
 
@@ -65,7 +66,7 @@ namespace Google_Like_Blazor.Pages
             }
             else
             {
-                return  await _file.SearchInContent(keyword);
+                return  await _repositoryCache.GetFiles(keyword);
             }
         }
 
@@ -78,6 +79,10 @@ namespace Google_Like_Blazor.Pages
         {
             if (!string.IsNullOrWhiteSpace(searchWord))
             {
+                FileCount = 0;
+                elapsedMs = 0;
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                // the code that you want to measure comes here
 
                 loading = true;
                 //files = await _file.SearchByNameAsync(searchWord);
@@ -97,6 +102,9 @@ namespace Google_Like_Blazor.Pages
                 SearchWord = searchWord;
                 loading = false;
 
+
+                watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds;
                 StateHasChanged();
             }
 
