@@ -8,9 +8,9 @@
 
     @if (loading == true)
     {
-        <Chase></Chase>
+  <CircleFade Color="rgba(0,255,0,0.3)"/>
     }
-
+<p>There is : @FileCount file(s)</p>
 <MudTable Items="@files" Dense="true" Hover="true" Bordered="true" Striped="true" @bind-SelectedItem="selectedItem">
     <ColGroup>
 
@@ -32,8 +32,8 @@
 
         <MudTh Class="ok-ternary"> Name</MudTh>
 
-        <MudTh Class="ok-ternary">Type</MudTh>
-        <MudTh Class="ok-ternary">Preview</MudTh>
+        <MudTh Class="ok-ternary" >Type</MudTh>
+        <MudTh Class="ok-ternary" >Preview</MudTh>
 
         <MudTh Class="ok-ternary">Option</MudTh>
         <MudTh Class="ok-ternary">
@@ -46,7 +46,7 @@
         <MudTd DataLabel="Filename">@context.FileName</MudTd>
 
         <MudTd DataLabel="Type">@context.Type</MudTd>
-        <MudTd DataLabel="pre">@context.TextToPreview</MudTd>
+        <MudTd DataLabel="pre" Style="max-height:20%; overflow:auto">@context.TextToPreview</MudTd>
         <MudTd DataLabel="Preview">
             <MudGrid>
 
@@ -85,7 +85,7 @@
     <PagerContent>
         @if (loading == true)
         {
-            <Chase></Chase>
+            <CircleFade Color="rgba(0,255,0,0.3)"/>
         }
         <MudTablePager />
     </PagerContent>

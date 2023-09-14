@@ -1,7 +1,10 @@
 ﻿
 
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using UglyToad.PdfPig.Core;
+using static MudBlazor.CategoryTypes;
 using Page = UglyToad.PdfPig.Content.Page;
 
 namespace Google_Like_Blazor.Services
@@ -48,11 +51,8 @@ namespace Google_Like_Blazor.Services
         { 
             var result = new List<FileViewModel>();
 
-            logger.LogInformation("Created new list for result");
             var list= await _collection.Find(x=>x.Type.Contains("pdf")).ToListAsync();
             
-      
-
                 foreach (var item in list)
                 {
 
@@ -60,75 +60,31 @@ namespace Google_Like_Blazor.Services
 
                     using (var pdfDocument = PdfDocument.Open(item.Content))
                     {
-                        logger.LogInformation($"Trace pages number, {pdfDocument.NumberOfPages}, {pdfDocument.Information}, ");
-
-                   
+   
                         foreach (var page in pdfDocument.GetPages())
                         {
                        
-                        #region  Segment page
-                            var pageSegmenter = DocstrumBoundingBoxes.Instance;
-                            var pageSegmenterOptions = new DocstrumBoundingBoxes.DocstrumBoundingBoxesOptions(){  };
-                            #endregion
+             
 
                             var words = page.GetWords();
+                        
+                             var text = page.Text;
+                
+                            var r = new Regex(@"[^.!?;]*" + keyword + @"[^.!?;]*");
+                            var m = r.Matches(text);
 
-                         var text = page.Text;
+                            var res = Enumerable.Range(0, m.Count).Select(index => m[index].Value).ToList();
 
-
-
-                        logger.LogInformation($"Total words, {words}");
-
-                        foreach (Word word in words)
+                            foreach (var itm in res)
                             {
-                                if (word.Text.ToLower().Contains(keyword.ToLower()))
-                                {
-                                    List<Word> filtred = words.Where(x => x.Text.ToLower().Contains(keyword.ToLower())).ToList();
-                                logger.LogInformation($"Trace filtred, {filtred.Count()}");
 
-
-                                var readingOrder = UnsupervisedReadingOrderDetector.Instance;
-                             
-
-                                    var textBlocks = pageSegmenter.GetBlocks(filtred);
-                                    logger.LogInformation($"Trace textBlocks, {textBlocks.Count()}");
-                                foreach (var tb in textBlocks)
-                                {
-                                    logger.LogInformation($"Trace tb, {tb.Text}");
-
-                                }
-
-                                var orderedTextBlocks = readingOrder.Get(textBlocks);
-                               
-                                    foreach (var block in orderedTextBlocks)
-                                    {
-
-                               
-                                        logger.LogInformation($"Trace block text, {block.Text}");
-                                        var areaWithoutBorders = block.BoundingBox;
-                                        var lines = block.TextLines;
-                                        logger.LogInformation($"Trace lines, {lines.Count()}");
-
-                                    foreach (var t in lines)
-                                    {
-                                        logger.LogInformation($"Trace, {t.Text.Normalize(NormalizationForm.FormKC)}");
-
-                                        var pageText = string.Join(" ", t.Text.Normalize(NormalizationForm.FormKC));                       
-                                        sb.AppendJoin(" ", pageText);
-                                        //sb.Append(pageText);
-                                    }
-                                  //  sb.Append(block.Text.Normalize(NormalizationForm.FormKC)); // normalise text
-                         
-                                    }
-
-    
-
-                            }                              
-
+                                sb.Append("[page " + page.Number+ "] << " + itm+ " >>");
+                        
                             }
 
+
                         }
-                
+
 
 
                     }
@@ -146,10 +102,8 @@ namespace Google_Like_Blazor.Services
                     
                     result.Add(vm);
                 }
-                logger.LogInformation($"add viewModel in to result list {vm.FileName}");
+     
             }
-             
-            
 
             return result;
         }
@@ -162,6 +116,27 @@ namespace Google_Like_Blazor.Services
         {
             return _collection.ReplaceOneAsync(x => x.Id == id, obj).IsCompletedSuccessfully;
 
+        }
+
+        public async Task<List<FileViewModel>> SearchInFileName(string keyword)
+        {
+            var result = new List<FileViewModel>();
+
+            logger.LogInformation("Created new list for result");
+            var list = await _collection.Find(x => x.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant())).ToListAsync();
+
+             result = (from x in list
+                          select new FileViewModel
+                          {
+                              Id = x.Id,
+                              Content = x.Content,
+                              Type = x.Type,
+                              TextToPreview = "",
+                              FileName = x.FileName
+                          }
+                          ).ToList();
+
+            return result;
         }
     }
 }

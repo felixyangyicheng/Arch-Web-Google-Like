@@ -3,6 +3,7 @@ using Blazored.LocalStorage;
 using Google_Like_Blazor.Data;
 
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 
 namespace Google_Like_Blazor;
@@ -14,12 +15,20 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.Configure<ConnectionStringModel>(
         builder.Configuration.GetSection("MongoDatabase"));
+        builder.Services.Configure<RedisConfig>(
+            builder.Configuration.GetSection("RedisConfig"));
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddFileReaderService();
+        builder.Services.AddMemoryCache();
 
+        builder.Services.AddSingleton<MemoryCacheConfig>();
+        builder.Services.AddScoped<RepositoryCache>();
+
+
+        builder.Services.AddSingleton<MyRedisCache>();
         builder.Services.AddBlazoredLocalStorage();
 
         // Add services to the container.

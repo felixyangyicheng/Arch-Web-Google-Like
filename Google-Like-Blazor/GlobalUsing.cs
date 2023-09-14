@@ -1,8 +1,4 @@
 ﻿global using Microsoft.Extensions.Options;
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 global using Microsoft.AspNetCore.Components;
 global using BlazorPro.Spinkit;
 global using MongoDB.Driver;
@@ -16,7 +12,10 @@ global using Google_Like_Blazor.Services;
 global using Google_Like_Blazor.Data;
 global using Tewr.Blazor.FileReader;
 global using Google_Like_Blazor.Components;
+global using Google_Like_Blazor.Utils;
 
+global using Microsoft.Extensions.Caching.Memory;
+global using StackExchange.Redis;
 global using System.IO;
 global using Microsoft.Extensions.Logging;
 global using SharpCompress.Common;

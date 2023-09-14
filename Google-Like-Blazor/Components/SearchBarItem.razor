@@ -2,7 +2,7 @@
 
 <section style="margin-bottom: 10px d-flex p-2">
     <input type="text" class="form-control" placeholder="input keyword ex: tennis"
-           @bind-value="@SearchTerm" @bind-value:event="oninput" @onkeyup="async () => await OnSearchChanged.InvokeAsync(SearchTerm)" />
+           @bind-value="@SearchTerm" @bind-value:event="oninput" @onchange="async () => await OnSearchChanged.InvokeAsync(SearchTerm)" />
 </section>
 
 

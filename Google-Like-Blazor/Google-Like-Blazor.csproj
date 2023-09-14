@@ -22,17 +22,21 @@
     <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
     <PackageReference Include="PdfPig" Version="0.1.8" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Components\" />
     <None Remove="Services\" />
     <None Remove="Controllers\" />
     <None Remove="logs\" />
+    <None Remove="Utils\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Components\" />
     <Folder Include="Services\" />
     <Folder Include="Controllers\" />
     <Folder Include="logs\" />
+    <Folder Include="Utils\" />
   </ItemGroup>
 </Project>
