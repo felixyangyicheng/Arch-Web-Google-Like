@@ -50,7 +50,7 @@ namespace Google_Like_Blazor.Services
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                 {
                     // 撐 (60秒一到自動清除)
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(6)
                 }
                     // 使用1個單位
                     .SetSize(1);

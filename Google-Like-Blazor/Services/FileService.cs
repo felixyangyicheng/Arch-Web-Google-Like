@@ -1,5 +1,6 @@
 ﻿
 
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -90,7 +91,7 @@ namespace Google_Like_Blazor.Services
                     TextToPreview = sb.ToString(),
                     FileName = item.FileName
                 };
-                if (vm.TextToPreview.Contains(keyword)||vm.FileName.Contains(keyword))
+                if (vm.TextToPreview.ToLowerInvariant().Contains(keyword.ToLowerInvariant()) ||vm.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant()))
                 {
                     
                     result.Add(vm);

@@ -32,6 +32,7 @@ namespace Google_Like_Blazor.Pages
                 var tempFiles = await _repositoryCache.GetFiles("tennis");
                 files = tempFiles;
                 FileCount = files.Count();
+       
                 loading = false;
 
                 StateHasChanged();
@@ -53,9 +54,9 @@ namespace Google_Like_Blazor.Pages
 
 
 
-        public async Task SetValue(string keyword)
+        public async Task SetValue(string keyword, List<FileViewModel> fileViewModels)
         {
-            MemoryStorageUtility.Storage[keyword] = files;
+            MemoryStorageUtility.Storage[keyword] = fileViewModels;
         }
 
         public async Task<List<FileViewModel>> GetValueFromMemoryStorage(string keyword)
@@ -66,7 +67,11 @@ namespace Google_Like_Blazor.Pages
             }
             else
             {
-                return  await _repositoryCache.GetFiles(keyword);
+                var p = await _repositoryCache.GetFiles(keyword);
+                StateHasChanged();
+                SetValue(keyword, p);
+                StateHasChanged();
+                return p;
             }
         }
 
@@ -89,9 +94,10 @@ namespace Google_Like_Blazor.Pages
                 StateHasChanged();
 
                 files = await _file.SearchInFileName(searchWord);
+                
                 loading = false;
                 StateHasChanged();
-
+       
                 loading = true;
      
 
@@ -105,6 +111,7 @@ namespace Google_Like_Blazor.Pages
 
                 watch.Stop();
                 elapsedMs = watch.ElapsedMilliseconds;
+
                 StateHasChanged();
             }
 

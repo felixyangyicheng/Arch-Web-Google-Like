@@ -11,7 +11,7 @@ namespace Google_Like_Blazor.Utils
             Cache = new MemoryCache(new MemoryCacheOptions
             {
                 //  utiliser 2 unités caches
-                SizeLimit = 2
+                //SizeLimit = 2
             });
         }
     }
