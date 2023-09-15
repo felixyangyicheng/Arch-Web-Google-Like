@@ -15,11 +15,11 @@ services:
     # networks:
     #   - backend
 
-  gl-blzapp:
+  gl-blzapp1:
     build: ./Google-Like-Blazor/
     # image: GL-blzapp
     restart: always
-    container_name: gl-blzapp
+    container_name: gl-blzapp1
     depends_on:
       - gl-mongo
     environment:
@@ -28,7 +28,28 @@ services:
         - ASPNETCORE_URLS=http://+:80
     ports: 
       - '8080:80'
-      - '8081:443'
+      # - '8081:443'
+    links:
+      - gl-mongo
+
+    # networks:
+    #   - backend
+    #   - frontend
+
+  gl-blzapp2:
+    build: ./Google-Like-Blazor/
+    # image: GL-blzapp
+    restart: always
+    container_name: gl-blzapp2
+    depends_on:
+      - gl-mongo
+    environment:
+        - Logging__Loglevel__Default=Debug
+        - Logging__Loglevel__Microsoft.AspNetCore=Debug
+        - ASPNETCORE_URLS=http://+:80
+    ports: 
+      - '8081:80'
+      # - '8081:443'
     links:
       - gl-mongo
 
@@ -36,6 +57,40 @@ services:
     #   - backend
     #   - frontend
   
+  gl-blzapp3:
+    build: ./Google-Like-Blazor/
+    # image: GL-blzapp
+    restart: always
+    container_name: gl-blzapp3
+    depends_on:
+      - gl-mongo
+    environment:
+        - Logging__Loglevel__Default=Debug
+        - Logging__Loglevel__Microsoft.AspNetCore=Debug
+        - ASPNETCORE_URLS=http://+:80
+    ports: 
+      - '8082:80'
+      # - '8081:443'
+    links:
+      - gl-mongo
+
+    # networks:
+    #   - backend
+    #   - frontend
+
+  
+
+  gl-caddy:
+    image: caddy
+    restart: always
+    container_name: gl-caddy
+    environment:
+      - name=value
+    volumes:
+      - ./caddy:/etc/caddy/
+    ports:
+     - 3000:80
+     - 8843:8843
 # networks:
 #   backend:
 #   frontend:

@@ -1,0 +1,5 @@
+http://localhost {
+    reverse_proxy gl-blzapp1:80 gl-blzapp2:80 gl-blzapp3:80 {
+        lb_policy first
+    }
+}
