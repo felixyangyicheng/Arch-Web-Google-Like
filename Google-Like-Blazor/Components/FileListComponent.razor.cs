@@ -44,7 +44,7 @@ namespace Google_Like_Blazor.Components
 
         private async ValueTask<ItemsProviderResult<FileViewModel>> LoadFileViewModels(ItemsProviderRequest request)
         {
-             FileViewModels = await  _file.SearchInContent("sport");
+            // FileViewModels = await  _file.SearchInContent("sport");
             return new ItemsProviderResult<FileViewModel>(FileViewModels.Skip(request.StartIndex).Take(request.Count), FileViewModels.Count());
         }
 
@@ -52,7 +52,7 @@ namespace Google_Like_Blazor.Components
         {
 
 
-             FileViewModels = await _file.SearchInContent("sport");
+            // FileViewModels = await _file.SearchInContent("sport");
             StateHasChanged();
             base.OnInitializedAsync();
 

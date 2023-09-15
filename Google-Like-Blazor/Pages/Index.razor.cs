@@ -63,6 +63,7 @@ namespace Google_Like_Blazor.Pages
         {
             if (MemoryStorageUtility.Storage.TryGetValue(keyword, out var value))
             {
+            
                 return  (List<FileViewModel>) value;
             }
             else
@@ -103,8 +104,14 @@ namespace Google_Like_Blazor.Pages
 
                 var tempFiles = await GetValueFromMemoryStorage(searchWord);
                 //var tempFiles = await _file.SearchInFileName(searchWord);
+          
                 files = tempFiles;
                 FileCount = files.Count;
+                StateHasChanged();
+
+                if(FileCount<1){
+                    files=await _repositoryCache.GetFiles(searchWord);
+                }
                 SearchWord = searchWord;
                 loading = false;
 
