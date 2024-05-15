@@ -163,7 +163,6 @@ namespace Google_Like_Blazor.Services
                     if (pdfDocument != null)
                         pdfDocument.Dispose();
                 }
-
                 FileViewModel vm = new FileViewModel
                 {
                     Id = item.Id,
@@ -186,52 +185,46 @@ namespace Google_Like_Blazor.Services
 
         public async Task<List<FileViewModel>> SearchInContentTask(string keyword)
         {
-            throw new NotImplementedException();
-        }
-
-
-        private async Task<FileViewModel> ProcessFileAsync(FileModel item, string keyword)
-        {
-            var sb = new StringBuilder();
-            var vm = new FileViewModel
+            var result = new List<FileViewModel>();
+            var fileList = await _collection.Find(x => x.Type.Contains("pdf")).ToListAsync();
+            var tasks = fileList.Select(async item =>
             {
-                Id = item.Id,
-                Content = item.Content,
-                Type = item.Type,
-                TextToPreview = sb.ToString(),
-                FileName = item.FileName
-            };
-            using (var pdfDocument = PdfDocument.Open(item.Content))
-            {
-                var pageTasks = pdfDocument.GetPages().Select(page => ProcessPageAsync(page, keyword));
-                var processedPages = await Task.WhenAll(pageTasks);
-
-                foreach (var pageText in processedPages)
+                var sb = new StringBuilder();
+                using (var pdfDocument = PdfDocument.Open(item.Content))
                 {
-                    sb.Append(pageText);
+                    var searchTasks = pdfDocument.GetPages().Select(async page =>
+                    {
+                        var words = page.GetWords();
+                        var text = page.Text;
+                        var r = new Regex(@"[^.!?;]*" + keyword + @"[^.!?;]*");
+                        var m = r.Matches(text);
+                        var res = Enumerable.Range(0, m.Count).Select(index => m[index].Value).ToList();
+                        foreach (var itm in res)
+                        {
+                            string CleanedString = Regex.Replace(itm, keyword, $"<span class='keyword'>{keyword}</span>");
+                            sb.Append("<p> [page " + page.Number + "] << " + CleanedString + " >> </p>");
+                        }
+                    });
+                    await Task.WhenAll(searchTasks); // Wait for all search tasks to complete
                 }
-            }
-            if (vm.TextToPreview.ToLowerInvariant().Contains(keyword.ToLowerInvariant()) || vm.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant()))
-            {
-                return vm;
-            }
-            return null;
-        }
-
-        private async Task<string> ProcessPageAsync(Page page, string keyword)
-        {
-            var sb = new StringBuilder();
-            var words = page.GetWords();
-            var text = page.Text;
-            var r = new Regex(@"[^.!?;]*" + keyword + @"[^.!?;]*");
-            var m = r.Matches(text);
-            var res = Enumerable.Range(0, m.Count).Select(index => m[index].Value).ToList();
-            foreach (var itm in res)
-            {
-                string CleanedString = Regex.Replace(itm, keyword, $"<span class='keyword'>{keyword}</span>");
-                sb.Append("<p> [page " + page.Number + "] << " + CleanedString + " >> </p>");
-            }
-            return sb.ToString();
+                FileViewModel vm = new FileViewModel
+                {
+                    Id = item.Id,
+                    Content = item.Content,
+                    Type = item.Type,
+                    TextToPreview = sb.ToString(),
+                    FileName = item.FileName
+                };
+                if (vm.TextToPreview.ToLowerInvariant().Contains(keyword.ToLowerInvariant()) || vm.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant()))
+                {
+                    lock (result) // Ensure thread safety when accessing shared list
+                    {
+                        result.Add(vm);
+                    }
+                }
+            });
+            await Task.WhenAll(tasks);
+            return result;
         }
 
         public IAsyncEnumerable<FileViewModel> SearchInContentAsyncEnum(string keyword)
