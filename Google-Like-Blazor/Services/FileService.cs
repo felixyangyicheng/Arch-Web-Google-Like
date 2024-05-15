@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using MongoDB.Driver;
 using UglyToad.PdfPig.Core;
+using UglyToad.PdfPig.Graphics;
 using static MudBlazor.CategoryTypes;
 using Page = UglyToad.PdfPig.Content.Page;
 
@@ -66,15 +67,11 @@ namespace Google_Like_Blazor.Services
                 { 
                     foreach (var page in pdfDocument.GetPages())
                     {                                
-                        var words = page.GetWords();
-                        
-                        var text = page.Text;
-                
+                        var words = page.GetWords();                
+                        var text = page.Text;             
                         var r = new Regex(@"[^.!?;]*" + keyword + @"[^.!?;]*");
                         var m = r.Matches(text);
-
                         var res = Enumerable.Range(0, m.Count).Select(index => m[index].Value).ToList();
-
                         foreach (var itm in res)
                         {
                             string CleanedString = Regex.Replace(itm, keyword, $"<span class='keyword'>{keyword}</span>");
@@ -92,8 +89,7 @@ namespace Google_Like_Blazor.Services
                     FileName = item.FileName
                 };
                 if (vm.TextToPreview.ToLowerInvariant().Contains(keyword.ToLowerInvariant()) ||vm.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant()))
-                {
-                    
+                {                    
                     result.Add(vm);
                 }
      
@@ -111,6 +107,7 @@ namespace Google_Like_Blazor.Services
         }
 
 
+        #region SearchInFileName
 
         public async Task<List<FileViewModel>> SearchInFileName(string keyword)
         {
@@ -131,6 +128,115 @@ namespace Google_Like_Blazor.Services
                         ).ToList();
 
             return result;
+        }
+        #endregion
+
+        public async Task<List<FileViewModel>> SearchInContentParelle(string keyword)
+        {
+            var result = new List<FileViewModel>();
+
+            var list = await _collection.Find(x => x.Type.Contains("pdf")).ToListAsync();
+
+            Parallel.ForEach(list, async item =>
+            {
+                var sb = new StringBuilder();
+                PdfDocument pdfDocument = null;
+                try
+                {
+                    pdfDocument = PdfDocument.Open(item.Content);
+                    foreach (var page in pdfDocument.GetPages())
+                    {
+                        var words = page.GetWords();
+                        var text = page.Text;
+                        var r = new Regex(@"[^.!?;]*" + keyword + @"[^.!?;]*");
+                        var m = r.Matches(text);
+                        var res = Enumerable.Range(0, m.Count).Select(index => m[index].Value).ToList();
+                        foreach (var itm in res)
+                        {
+                            string CleanedString = Regex.Replace(itm, keyword, $"<span class='keyword'>{keyword}</span>");
+                            sb.Append("<p> [page " + page.Number + "] << " + CleanedString + " >> </p>");
+                        }
+                    }
+                }
+                finally
+                {
+                    if (pdfDocument != null)
+                        pdfDocument.Dispose();
+                }
+
+                FileViewModel vm = new FileViewModel
+                {
+                    Id = item.Id,
+                    Content = item.Content,
+                    Type = item.Type,
+                    TextToPreview = sb.ToString(),
+                    FileName = item.FileName
+                };
+                if (vm.TextToPreview.ToLowerInvariant().Contains(keyword.ToLowerInvariant()) || vm.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant()))
+                {
+                    lock (result)
+                    {
+                        result.Add(vm);
+                    }
+                }
+            });
+
+            return result;
+        }
+
+        public async Task<List<FileViewModel>> SearchInContentTask(string keyword)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private async Task<FileViewModel> ProcessFileAsync(FileModel item, string keyword)
+        {
+            var sb = new StringBuilder();
+            var vm = new FileViewModel
+            {
+                Id = item.Id,
+                Content = item.Content,
+                Type = item.Type,
+                TextToPreview = sb.ToString(),
+                FileName = item.FileName
+            };
+            using (var pdfDocument = PdfDocument.Open(item.Content))
+            {
+                var pageTasks = pdfDocument.GetPages().Select(page => ProcessPageAsync(page, keyword));
+                var processedPages = await Task.WhenAll(pageTasks);
+
+                foreach (var pageText in processedPages)
+                {
+                    sb.Append(pageText);
+                }
+            }
+            if (vm.TextToPreview.ToLowerInvariant().Contains(keyword.ToLowerInvariant()) || vm.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant()))
+            {
+                return vm;
+            }
+            return null;
+        }
+
+        private async Task<string> ProcessPageAsync(Page page, string keyword)
+        {
+            var sb = new StringBuilder();
+            var words = page.GetWords();
+            var text = page.Text;
+            var r = new Regex(@"[^.!?;]*" + keyword + @"[^.!?;]*");
+            var m = r.Matches(text);
+            var res = Enumerable.Range(0, m.Count).Select(index => m[index].Value).ToList();
+            foreach (var itm in res)
+            {
+                string CleanedString = Regex.Replace(itm, keyword, $"<span class='keyword'>{keyword}</span>");
+                sb.Append("<p> [page " + page.Number + "] << " + CleanedString + " >> </p>");
+            }
+            return sb.ToString();
+        }
+
+        public IAsyncEnumerable<FileViewModel> SearchInContentAsyncEnum(string keyword)
+        {
+            throw new NotImplementedException();
         }
     }
 }
