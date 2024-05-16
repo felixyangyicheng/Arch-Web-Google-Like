@@ -10,6 +10,8 @@ namespace Google_Like_Blazor.Services
 
         Task<List<FileViewModel>> SearchInContent(string keyword);
         Task<List<FileViewModel>> SearchInContentParelle(string keyword);
+        Task<List<FileViewModel>> SearchInContentParelleDeep2(string keyword);
+        
         Task<List<FileViewModel>> SearchInContentTask(string keyword);
         IAsyncEnumerable<FileViewModel> SearchInContentAsyncEnum(string keyword);
         Task<List<FileViewModel>> SearchInFileName(string keyword);

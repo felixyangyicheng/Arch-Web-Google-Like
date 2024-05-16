@@ -182,7 +182,59 @@ namespace Google_Like_Blazor.Services
 
             return result;
         }
+        public async Task<List<FileViewModel>> SearchInContentParelleDeep2(string keyword)
+        {
+            var result = new List<FileViewModel>();
 
+            var list = await _collection.Find(x => x.Type.Contains("pdf")).ToListAsync();
+
+            Parallel.ForEach(list, async item =>
+            {
+                var sb = new StringBuilder();
+                PdfDocument pdfDocument = null;
+                try
+                {
+                    pdfDocument = PdfDocument.Open(item.Content);
+                    Parallel.ForEach(pdfDocument.GetPages(), page =>
+                    {
+                        var words = page.GetWords();
+                        var text = page.Text;
+                        var r = new Regex(@"[^.!?;]*" + keyword + @"[^.!?;]*");
+                        var m = r.Matches(text);
+                        var res = Enumerable.Range(0, m.Count).Select(index => m[index].Value).ToList();
+                        foreach (var itm in res)
+                        {
+                            string CleanedString = Regex.Replace(itm, keyword, $"<span class='keyword'>{keyword}</span>");
+                            sb.Append("<p> [page " + page.Number + "] << " + CleanedString + " >> </p>");
+                            
+                        }
+                    });
+       
+                }
+                finally
+                {
+                    if (pdfDocument != null)
+                        pdfDocument.Dispose();
+                }
+                FileViewModel vm = new FileViewModel
+                {
+                    Id = item.Id,
+                    Content = item.Content,
+                    Type = item.Type,
+                    TextToPreview = sb.ToString(),
+                    FileName = item.FileName
+                };
+                if (vm.TextToPreview.ToLowerInvariant().Contains(keyword.ToLowerInvariant()) || vm.FileName.ToLowerInvariant().Contains(keyword.ToLowerInvariant()))
+                {
+                    lock (result)
+                    {
+                        result.Add(vm);
+                    }
+                }
+            });
+
+            return result;
+        }
         public async Task<List<FileViewModel>> SearchInContentTask(string keyword)
         {
             var result = new List<FileViewModel>();

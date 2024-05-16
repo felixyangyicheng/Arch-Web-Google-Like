@@ -2,7 +2,10 @@
 
 <br />
 
-<SearchBarItem OnSearchChanged="InputChanged"></SearchBarItem>
+ParalellForDeep2<SearchBarItem OnSearchChanged="InputChangedFor"></SearchBarItem>
+TaskWhenAll<SearchBarItem OnSearchChanged="InputChangedTaskWhenAll"></SearchBarItem>
+ParalellFor<SearchBarItem OnSearchChanged="InputChangedParalell"></SearchBarItem>
+
 
 <br />
 
@@ -31,8 +34,9 @@
              
 
                             <embed height="750vh" width="1200vw" type="application/pdf" src="http://localhost:3000/api/file/@(f.Id)" />
-                        
-                    </MudItem>
+                    <embed height="750vh" width="1200vw"  type="application/pdf" src="https://localhost:7104/api/file/@(f.Id)" />
+
+                </MudItem>
                 </MudGrid>
             </MudExpansionPanel>
         }

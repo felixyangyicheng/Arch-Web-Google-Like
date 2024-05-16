@@ -110,7 +110,8 @@ namespace Google_Like_Blazor.Pages
                 StateHasChanged();
 
                 if(FileCount<1){
-                    files=await _repositoryCache.GetFiles(searchWord);
+                    //files=await _repositoryCache.GetFiles(searchWord);
+                    files=await _file.SearchInContentParelle(searchWord);
                 }
                 SearchWord = searchWord;
                 loading = false;
@@ -124,7 +125,63 @@ namespace Google_Like_Blazor.Pages
 
             InvokeAsync(StateHasChanged);
         }
-
+        protected async Task InputChangedFor(string searchWord)
+        {
+            if (!string.IsNullOrWhiteSpace(searchWord))
+            {
+                FileCount = 0;
+                elapsedMs = 0;
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                loading = true;
+                StateHasChanged();
+                files = await _file.SearchInContentParelleDeep2 (searchWord);
+                FileCount = files.Count;
+                SearchWord = searchWord;
+                loading = false;
+                watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds;
+                StateHasChanged();
+            }
+            InvokeAsync(StateHasChanged);
+        }
+        protected async Task InputChangedTaskWhenAll(string searchWord)
+        {
+            if (!string.IsNullOrWhiteSpace(searchWord))
+            {
+                FileCount = 0;
+                elapsedMs = 0;
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                loading = true;
+                StateHasChanged();
+                files = await _file.SearchInContentTask(searchWord);
+                FileCount = files.Count;
+                SearchWord = searchWord;
+                loading = false;
+                watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds;
+                StateHasChanged();
+            }
+            InvokeAsync(StateHasChanged);
+        }
+        protected async Task InputChangedParalell(string searchWord)
+        {
+            if (!string.IsNullOrWhiteSpace(searchWord))
+            {
+                FileCount = 0;
+                elapsedMs = 0;
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                loading = true;
+                StateHasChanged();
+                files = await _file.SearchInContentParelle(searchWord);
+                FileCount = files.Count;
+                SearchWord = searchWord;
+                loading = false;
+                watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds;
+                StateHasChanged();
+            }
+            InvokeAsync(StateHasChanged);
+        }
         protected async Task ShowFile(string Id)
         {
 
