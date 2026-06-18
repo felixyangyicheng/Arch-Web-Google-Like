@@ -1,5 +1,7 @@
-http://localhost {
+:80 {
     reverse_proxy gl-blzapp1:80 gl-blzapp2:80 gl-blzapp3:80 {
-        lb_policy first
+        lb_policy round_robin
+        health_uri /health
+        health_interval 10s
     }
 }

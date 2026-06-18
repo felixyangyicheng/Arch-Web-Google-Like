@@ -3,6 +3,14 @@ using MongoDB.Bson.IO;
 
 namespace Google_Like_Blazor.Services
 {
+    /// <summary>
+    /// Redis-backed cache service.
+    /// </summary>
+    /// <remarks>
+    /// 🏷️ PLANNED — all Redis methods are currently commented out.
+    /// When enabled, this service will use <see cref="MyRedisCache"/> as the connection provider.
+    /// Currently the app uses <see cref="MemoryCache"/> via <see cref="RepositoryCache"/> for caching.
+    /// </remarks>
     public class CacheService // : ICacheService
     {
         private IDatabase _db;

@@ -1,6 +1,5 @@
 ﻿
-
-using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Google_Like_Blazor.Services
 {
@@ -13,7 +12,8 @@ namespace Google_Like_Blazor.Services
         Task<List<FileViewModel>> SearchInContentParelleDeep2(string keyword);
         
         Task<List<FileViewModel>> SearchInContentTask(string keyword);
-        IAsyncEnumerable<FileViewModel> SearchInContentAsyncEnum(string keyword);
+        IAsyncEnumerable<FileViewModel> SearchInContentAsyncEnum(string keyword,
+            CancellationToken ct = default);
         Task<List<FileViewModel>> SearchInFileName(string keyword);
     }
 }

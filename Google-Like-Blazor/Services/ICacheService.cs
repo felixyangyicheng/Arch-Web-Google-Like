@@ -1,8 +1,16 @@
 ﻿using System;
 namespace Google_Like_Blazor.Services
 {
-	public interface ICacheService
-	{
+    /// <summary>
+    /// Redis cache interface.
+    /// </summary>
+    /// <remarks>
+    /// 🏷️ PLANNED — Redis caching is not yet integrated.
+    /// The implementation <see cref="CacheService"/> is stubbed out.
+    /// Currently the app uses <see cref="MemoryCache"/> via <see cref="RepositoryCache"/> for caching.
+    /// </remarks>
+    public interface ICacheService
+    {
         /// <summary>
         /// Get Data using key
         /// </summary>

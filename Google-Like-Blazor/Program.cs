@@ -15,6 +15,8 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.Configure<ConnectionStringModel>(
         builder.Configuration.GetSection("MongoDatabase"));
+        builder.Services.Configure<PgConnectionModel>(
+            builder.Configuration.GetSection("PostgresDatabase"));
         builder.Services.Configure<RedisConfig>(
             builder.Configuration.GetSection("RedisConfig"));
         builder.Services.AddControllers();
@@ -25,6 +27,7 @@ public class Program
         builder.Services.AddMemoryCache();
         builder.Services.AddScoped<MemoryStorageUtility>();
         builder.Services.AddSingleton<MemoryCacheConfig>();
+        builder.Services.AddSingleton<PdfTextCache>();
         builder.Services.AddScoped<RepositoryCache>();
 
 
@@ -34,8 +37,11 @@ public class Program
         // Add services to the container.
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
-        builder.Services.AddSingleton<WeatherForecastService>();
+        // MongoDB repository
         builder.Services.AddScoped<IFileRepo, FileService>();
+        // PostgreSQL repository (coexists alongside MongoDB)
+        builder.Services.AddScoped<IPgFileRepo, PgFileService>();
+        // GridFS — registered but not currently wired into upload/download flow
         builder.Services.AddScoped<IGridSfRepo, GridSfService>();
         builder.Host.UseSerilog((ctx, lc) =>
      lc.WriteTo.Console().ReadFrom.Configuration(ctx.Configuration));

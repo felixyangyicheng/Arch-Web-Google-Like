@@ -1,134 +1,79 @@
 ﻿@page "/"
+@implements IDisposable
 
-<br />
+<MudText Typo="Typo.h4" GutterBottom="true">Search</MudText>
 
-ParalellForDeep2<SearchBarItem OnSearchChanged="InputChangedFor"></SearchBarItem>
-TaskWhenAll<SearchBarItem OnSearchChanged="InputChangedTaskWhenAll"></SearchBarItem>
-ParalellFor<SearchBarItem OnSearchChanged="InputChangedParalell"></SearchBarItem>
+@* ── Main search bar (debounced, with filename + content search) ── *@
+<MudAlert Severity="Severity.Info" Dense="true" Class="mb-2">
+    Main search — debounced 300ms, searches filenames then full text
+</MudAlert>
+<SearchBarItem OnSearchChanged="InputChanged"></SearchBarItem>
 
+<MudDivider Class="my-4" />
 
-<br />
+<MudText Typo="Typo.h6" GutterBottom="true">Performance Benchmarks</MudText>
+<MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">
+    Each bar uses a different search strategy — type the same keyword to compare timings
+</MudText>
 
-    @if (loading)
-    {
-        <CircleFade Color="rgba(33,150,243,0.3)"/>
-    }
-<p> @FileCount result(s), in @elapsedMs ms</p>
-<MudExpansionPanels Dense="true">
+<MudGrid>
+    <MudItem xs="12" sm="4">
+        <MudAlert Severity="Severity.Warning" Dense="true">Parallel.ForEachAsync (across files + pages)</MudAlert>
+        <SearchBarItem OnSearchChanged="InputChangedFor"></SearchBarItem>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudAlert Severity="Severity.Warning" Dense="true">Task.WhenAll</MudAlert>
+        <SearchBarItem OnSearchChanged="InputChangedTaskWhenAll"></SearchBarItem>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudAlert Severity="Severity.Warning" Dense="true">Parallel.ForEachAsync (across files)</MudAlert>
+        <SearchBarItem OnSearchChanged="InputChangedParalell"></SearchBarItem>
+    </MudItem>
+</MudGrid>
+
+<MudDivider Class="my-4" />
+
+@* ── Results section ── *@
+
+@if (loading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" Class="mr-2" />
+    <MudText Typo="Typo.caption" Inline="true">Searching...</MudText>
+}
+else if (!string.IsNullOrWhiteSpace(SearchWord) && FileCount == 0)
+{
+    <MudAlert Severity="Severity.Info" Class="mt-4">
+        No results found for <b>@SearchWord</b>. Try a different keyword or upload more PDFs.
+    </MudAlert>
+}
+else if (FileCount > 0)
+{
+    <p>@FileCount result(s), in @elapsedMs ms</p>
+
+    <MudExpansionPanels Dense="true">
         @foreach (var f in files)
         {
             <MudExpansionPanel Text="@f.FileName">
                 <MudGrid>
- 
                     <MudItem xs="12" sm="12" lg="3">
-                       <MudCard Style="overflow:auto">
-                           <MudCardHeader>
-                               @f.FileName
-                           </MudCardHeader>
-                           <MudCardContent Style="max-height:450px; overflow-y:scroll">
-                               @((MarkupString)f.TextToPreview)
-                           </MudCardContent>
-                       </MudCard>
+                        <MudCard Style="overflow:auto">
+                            <MudCardHeader>
+                                @f.FileName
+                            </MudCardHeader>
+                            <MudCardContent Style="max-height:450px; overflow-y:scroll">
+                                @((MarkupString)f.TextToPreview)
+                            </MudCardContent>
+                        </MudCard>
                     </MudItem>
                     <MudItem xs="12" sm="12" lg="9">
-             
-
-                            <embed height="750vh" width="1200vw" type="application/pdf" src="http://localhost:3000/api/file/@(f.Id)" />
-                    <embed height="750vh" width="1200vw"  type="application/pdf" src="https://localhost:7104/api/file/@(f.Id)" />
-
-                </MudItem>
+                        <embed height="750vh" width="100%"
+                               type="application/pdf"
+                               src="api/file/@(f.Id)" />
+                    </MudItem>
                 </MudGrid>
             </MudExpansionPanel>
         }
-</MudExpansionPanels>
-
-
-@*<MudTable Items="@files" Dense="true" Hover="true" Bordered="true" Striped="true" @bind-SelectedItem="selectedItem" Height="80%" Breakpoint="Breakpoint.Sm" HorizontalScrollbar="true">
-    <ColGroup>
-
-        <col style="width: 3%;" />
-        <col style="width: 37%;" />
-        <col style="width: 15%;" />
-        <col style="width: 40%;" />
-        <col style="width: 5%;" />
-
-    </ColGroup>
-    <ToolBarContent>
-
-        <MudSpacer />
-
-    </ToolBarContent>
-
-    <HeaderContent>
-        <MudTh Class="ok-ternary">N° (@files.Count)</MudTh>
-
-        <MudTh Class="ok-ternary"> Name</MudTh>
-
-        <MudTh Class="ok-ternary">Type</MudTh>
-        <MudTh Class="ok-ternary">Preview</MudTh>
-
-        <MudTh Class="ok-ternary">Option</MudTh>
-        <MudTh Class="ok-ternary">
-            <MudIcon Icon="@Icons.Material.Rounded.ModeEdit"></MudIcon>
-        </MudTh>
-
-    </HeaderContent>
-    
-    <RowTemplate >
-        <MudTd>@(files.IndexOf(context)+1)</MudTd>
-        <MudTd DataLabel="Filename">@context.FileName</MudTd>
-
-        <MudTd DataLabel="Type">@context.Type</MudTd>
-        <MudTd DataLabel="pre" Style="max-height:20%; overflow:auto">@((MarkupString)context.TextToPreview)</MudTd>
-        <MudTd DataLabel="Preview">
-            <MudGrid>
-
-                <MudItem xs="6" sm="3" lg="6">
-                    @if (context.Type != "application/pdf")
-                    {
-                        <iframe src='https://view.officeapps.live.com/op/embed.aspx?src=https://localhost:7104/api/file/@(context.Id)' width='100%' height='100%' frameborder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.</iframe>
-
-                    }
-                    else
-                    {
-
-                        <embed type="application/pdf" src="https://localhost:7104/api/file/@(context.Id)" />
-                    }
-                </MudItem>
-            </MudGrid>
-        </MudTd>
-        <MudTd DataLabel="Option">
-
-            <MudGrid>
-
-                <MudItem xs="6" sm="3" lg="6">
-                    <MudIconButton OnClick="e=>ShowFile(context.Id)" Size="Size.Small" Class="d-inline-flex ok-primary" Icon="@Icons.Material.Filled.ArrowUpward" Variant="Variant.Filled" aria-label="arrowOutward"></MudIconButton>
-                </MudItem>
-            </MudGrid>
-
-
-        </MudTd>
-    </RowTemplate>
-
-
-    <PagerContent>
-        <MudTablePager />
-    </PagerContent>
-
-    <PagerContent>
-        @if (loading == true)
-        {
-            <CircleFade Color="rgba(0,255,0,0.3)" />
-        }
-        <MudTablePager />
-    </PagerContent>
-</MudTable>*@
-
-
-
-
-
-@code{
-
-
+    </MudExpansionPanels>
 }
+
+@code { }

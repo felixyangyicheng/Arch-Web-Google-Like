@@ -3,6 +3,15 @@
 
 namespace Google_Like_Blazor.Services
 {
+    /// <summary>
+    /// MongoDB GridFS file-storage service.
+    /// </summary>
+    /// <remarks>
+    /// 🏷️ PLANNED — GridFS is registered in DI (<see cref="IGridSfRepo"/>) but the upload component
+    /// (<c>UploadGenericFile.razor.cs</c>) currently saves files as byte arrays in the <c>files</c>
+    /// MongoDB collection via <see cref="IFileRepo"/> instead. The GridFS code paths are commented out
+    /// in the upload flow. To activate: uncomment the GridFS upload snippet in UploadGenericFile.
+    /// </remarks>
     public class GridSfService : IGridSfRepo
     {
         public readonly IMongoClient mongoClient;

@@ -12,73 +12,83 @@ services:
       - 27017
     ports:
       - '27017:27017'
-    # networks:
-    #   - backend
+
+  gl-postgres:
+    image: postgres:16-alpine
+    restart: always
+    container_name: gl-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: google_like
+    expose:
+      - 5432
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   gl-blzapp1:
     build: ./Google-Like-Blazor/
-    # image: GL-blzapp
     restart: always
     container_name: gl-blzapp1
     depends_on:
-      - gl-mongo
+      gl-mongo:
+        condition: service_started
+      gl-postgres:
+        condition: service_healthy
     environment:
         - Logging__Loglevel__Default=Debug
         - Logging__Loglevel__Microsoft.AspNetCore=Debug
         - ASPNETCORE_URLS=http://+:80
     ports: 
       - '8080:80'
-      # - '8081:443'
     links:
       - gl-mongo
-
-    # networks:
-    #   - backend
-    #   - frontend
+      - gl-postgres
 
   gl-blzapp2:
     build: ./Google-Like-Blazor/
-    # image: GL-blzapp
     restart: always
     container_name: gl-blzapp2
     depends_on:
-      - gl-mongo
+      gl-mongo:
+        condition: service_started
+      gl-postgres:
+        condition: service_healthy
     environment:
         - Logging__Loglevel__Default=Debug
         - Logging__Loglevel__Microsoft.AspNetCore=Debug
         - ASPNETCORE_URLS=http://+:80
     ports: 
       - '8081:80'
-      # - '8081:443'
     links:
       - gl-mongo
+      - gl-postgres
 
-    # networks:
-    #   - backend
-    #   - frontend
-  
   gl-blzapp3:
     build: ./Google-Like-Blazor/
-    # image: GL-blzapp
     restart: always
     container_name: gl-blzapp3
     depends_on:
-      - gl-mongo
+      gl-mongo:
+        condition: service_started
+      gl-postgres:
+        condition: service_healthy
     environment:
         - Logging__Loglevel__Default=Debug
         - Logging__Loglevel__Microsoft.AspNetCore=Debug
         - ASPNETCORE_URLS=http://+:80
     ports: 
       - '8082:80'
-      # - '8081:443'
     links:
       - gl-mongo
-
-    # networks:
-    #   - backend
-    #   - frontend
-
-  
+      - gl-postgres
 
   gl-caddy:
     image: caddy
@@ -91,6 +101,6 @@ services:
     ports:
      - 3000:80
      - 8843:8843
-# networks:
-#   backend:
-#   frontend:
+
+volumes:
+  pgdata:

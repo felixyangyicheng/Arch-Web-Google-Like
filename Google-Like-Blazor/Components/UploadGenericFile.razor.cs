@@ -10,10 +10,11 @@ namespace Google_Like_Blazor.Components
 {
     public partial class UploadGenericFile
     {
-        [Inject] IFileRepo _file { get; set; }
-        [Inject] IGridSfRepo gridSf { get; set; }
+        [Inject] IFileRepo _file { get; set; } = null!;
+        [Inject] IGridSfRepo gridSf { get; set; } = null!;
+        [Inject] PdfTextCache _textCache { get; set; } = null!;
 
-        [Inject] IFileReaderService fileReaderService { get; set; }
+        [Inject] IFileReaderService fileReaderService { get; set; } = null!;
         [Inject] NavigationManager _navi { get; set; }
         [Inject] IDialogService DialogService { get; set; }
         [Inject] ISnackbar Snackbar { get; set; }
@@ -153,6 +154,9 @@ namespace Google_Like_Blazor.Components
                     StateHasChanged();
                     await OnUploadCompleted.InvokeAsync(uploadCompleted);
                     Snackbar.Add($"{uploadElement.FileName} updated", Severity.Success);
+                    // Pre-warm PDF text cache so first search is instant
+                    if (FileDto.Type.Contains("pdf"))
+                        PreCachePdfText(FileDto);
                 }
             }
             else
@@ -167,7 +171,9 @@ namespace Google_Like_Blazor.Components
                     StateHasChanged();
                     await OnUploadCompleted.InvokeAsync(uploadCompleted);
                     Snackbar.Add($"{uploadElement.FileName} added", Severity.Success);
-
+                    // Pre-warm PDF text cache so first search is instant
+                    if (FileDto.Type.Contains("pdf"))
+                        PreCachePdfText(FileDto);
                 }
             }
             // await stream.CopyToAsync(fs);
@@ -181,6 +187,27 @@ namespace Google_Like_Blazor.Components
             wrapper = DotNetObjectReference.Create(this);
             dropInstance = await module.InvokeAsync<IJSObjectReference>("init", wrapper, UploadElement, inputFile!.Element);
         }
+        /// <summary>
+        /// ⚡ Pre-extract and cache PDF text at upload time.
+        /// The first search on this file will hit the cache instead of re-parsing the PDF.
+        /// </summary>
+        private void PreCachePdfText(FileModel file)
+        {
+            try
+            {
+                if (!_textCache.TryGet(file.Id, out _))
+                {
+                    using var pdf = UglyToad.PdfPig.PdfDocument.Open(file.Content);
+                    var pages = pdf.GetPages().Select(p => p.Text).ToArray();
+                    _textCache.Set(file.Id, pages);
+                }
+            }
+            catch
+            {
+                // Not a valid PDF or extraction failed — don't block the upload
+            }
+        }
+
         #region JSInvokable DropAlert
 
         [JSInvokable]
