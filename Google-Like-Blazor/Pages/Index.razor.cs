@@ -13,40 +13,50 @@
         public long elapsedMs { get; set; }
         public FileViewModel selectedItem { get; set; } = new();
         public List<FileViewModel> files { get; set; } = new();
+        public string? errorMessage { get; set; }
 
         // ── Debounce + cancellation ───────────────────────────────
         private CancellationTokenSource? _searchCts;
         private Timer? _debounceTimer;
-        private const int DebounceMs = 300; // wait 300ms after last keystroke
+        private bool _initialized;
+        private const int DebounceMs = 300;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (firstRender)
+            if (firstRender && !_initialized)
             {
+                _initialized = true;
                 loading = true;
-                var tempFiles = await _repositoryCache.GetFiles("tennis");
-                files = tempFiles;
-                FileCount = files.Count;
-                loading = false;
                 StateHasChanged();
+
+                try
+                {
+                    FileCount = await _repositoryCache.GetFilesCount();
+                    var tempFiles = await _repositoryCache.GetFiles("tennis");
+                    files = tempFiles;
+                }
+                catch (Exception ex)
+                {
+                    errorMessage = $"Failed to load initial data: {ex.Message}";
+                }
+                finally
+                {
+                    loading = false;
+                    StateHasChanged();
+                }
             }
         }
 
+        // ── OnParametersSetAsync is called on every render cycle — guard it ──
+
         protected override async Task OnParametersSetAsync()
         {
-            FileCount = await _repositoryCache.GetFilesCount();
-            StateHasChanged();
-            loading = true;
-            files = await _file.SearchInFileName("tennis");
-            StateHasChanged();
-            loading = false;
+            if (!_initialized) return; // skip: OnAfterRenderAsync handles first load
             await base.OnParametersSetAsync();
         }
 
         public async Task SetValue(string keyword, List<FileViewModel> fileViewModels)
-        {
-            MemoryStorageUtility.Set(keyword, fileViewModels);
-        }
+            => MemoryStorageUtility.Set(keyword, fileViewModels);
 
         public async Task<List<FileViewModel>> GetValueFromMemoryStorage(string keyword)
         {
@@ -62,24 +72,28 @@
 
         public void ClearAll() => MemoryStorageUtility.Storage.Clear();
 
-        // ── Debounced search (used by the first SearchBarItem) ────
+        // ── Debounced main search ─────────────────────────────────
 
         protected void InputChanged(string searchWord)
         {
-            // Cancel any pending debounce timer and in-flight search
             _debounceTimer?.Dispose();
             CancelSearch();
             SearchWord = searchWord;
 
-            if (string.IsNullOrWhiteSpace(searchWord)) return;
+            if (string.IsNullOrWhiteSpace(searchWord))
+            {
+                files.Clear();
+                FileCount = 0;
+                return;
+            }
 
             _debounceTimer = new Timer(async _ =>
             {
-                await InvokeAsync(() => DoSearch(searchWord));
+                await InvokeAsync(() => DoStreamingSearch(searchWord));
             }, null, DebounceMs, Timeout.Infinite);
         }
 
-        // ── Immediate searches (benchmark bars — no debounce) ─────
+        // ── Immediate benchmark searches ──────────────────────────
 
         protected async Task InputChangedFor(string searchWord)
         {
@@ -102,9 +116,9 @@
             await DoParallelSearch(searchWord);
         }
 
-        // ── Core search implementations ───────────────────────────
+        // ── Streaming search (IAsyncEnumerable — results appear as they arrive) ──
 
-        private async Task DoSearch(string searchWord)
+        private async Task DoStreamingSearch(string searchWord)
         {
             CancelSearch();
             _searchCts = new CancellationTokenSource();
@@ -114,25 +128,35 @@
             {
                 FileCount = 0;
                 elapsedMs = 0;
+                errorMessage = null;
                 var watch = System.Diagnostics.Stopwatch.StartNew();
 
                 loading = true;
+                files.Clear();
                 StateHasChanged();
 
-                // Phase 1: filename search (fast, always runs)
-                files = await _file.SearchInFileName(searchWord);
-                loading = false;
-                StateHasChanged();
+                // Phase 1: quick filename search
+                var nameResults = await _file.SearchInFileName(searchWord);
+                if (!ct.IsCancellationRequested)
+                {
+                    files = nameResults;
+                    FileCount = files.Count;
+                    StateHasChanged();
+                }
 
-                loading = true;
-                var tempFiles = await GetValueFromMemoryStorage(searchWord);
-                files = tempFiles;
-                FileCount = files.Count;
-                StateHasChanged();
-
-                // Phase 2: content search only if no filename matches
-                if (FileCount < 1 && !ct.IsCancellationRequested)
-                    files = await _file.SearchInContentParelle(searchWord);
+                // Phase 2: streaming content search with IAsyncEnumerable
+                if (!ct.IsCancellationRequested)
+                {
+                    await foreach (var vm in _file.SearchInContentAsyncEnum(searchWord, ct))
+                    {
+                        if (!files.Any(f => f.Id == vm.Id))
+                        {
+                            files.Add(vm);
+                            FileCount = files.Count;
+                            StateHasChanged(); // UI updates incrementally
+                        }
+                    }
+                }
 
                 SearchWord = searchWord;
                 loading = false;
@@ -140,7 +164,13 @@
                 elapsedMs = watch.ElapsedMilliseconds;
                 StateHasChanged();
             }
-            catch (OperationCanceledException) { /* search superseded — ignore */ }
+            catch (OperationCanceledException) { /* search superseded */ }
+            catch (Exception ex)
+            {
+                errorMessage = $"Search failed: {ex.Message}";
+                loading = false;
+                StateHasChanged();
+            }
         }
 
         private async Task DoParallelDeepSearch(string searchWord)
@@ -148,20 +178,16 @@
             _searchCts = new CancellationTokenSource();
             try
             {
-                FileCount = 0;
-                elapsedMs = 0;
+                FileCount = 0; elapsedMs = 0; errorMessage = null;
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                loading = true;
-                StateHasChanged();
+                loading = true; StateHasChanged();
                 files = await _file.SearchInContentParelleDeep2(searchWord);
-                FileCount = files.Count;
-                SearchWord = searchWord;
-                loading = false;
-                watch.Stop();
-                elapsedMs = watch.ElapsedMilliseconds;
-                StateHasChanged();
+                FileCount = files.Count; SearchWord = searchWord;
+                loading = false; watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds; StateHasChanged();
             }
             catch (OperationCanceledException) { }
+            catch (Exception ex) { errorMessage = ex.Message; loading = false; StateHasChanged(); }
         }
 
         private async Task DoTaskWhenAllSearch(string searchWord)
@@ -169,20 +195,16 @@
             _searchCts = new CancellationTokenSource();
             try
             {
-                FileCount = 0;
-                elapsedMs = 0;
+                FileCount = 0; elapsedMs = 0; errorMessage = null;
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                loading = true;
-                StateHasChanged();
+                loading = true; StateHasChanged();
                 files = await _file.SearchInContentTask(searchWord);
-                FileCount = files.Count;
-                SearchWord = searchWord;
-                loading = false;
-                watch.Stop();
-                elapsedMs = watch.ElapsedMilliseconds;
-                StateHasChanged();
+                FileCount = files.Count; SearchWord = searchWord;
+                loading = false; watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds; StateHasChanged();
             }
             catch (OperationCanceledException) { }
+            catch (Exception ex) { errorMessage = ex.Message; loading = false; StateHasChanged(); }
         }
 
         private async Task DoParallelSearch(string searchWord)
@@ -190,23 +212,18 @@
             _searchCts = new CancellationTokenSource();
             try
             {
-                FileCount = 0;
-                elapsedMs = 0;
+                FileCount = 0; elapsedMs = 0; errorMessage = null;
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                loading = true;
-                StateHasChanged();
+                loading = true; StateHasChanged();
                 files = await _file.SearchInContentParelle(searchWord);
-                FileCount = files.Count;
-                SearchWord = searchWord;
-                loading = false;
-                watch.Stop();
-                elapsedMs = watch.ElapsedMilliseconds;
-                StateHasChanged();
+                FileCount = files.Count; SearchWord = searchWord;
+                loading = false; watch.Stop();
+                elapsedMs = watch.ElapsedMilliseconds; StateHasChanged();
             }
             catch (OperationCanceledException) { }
+            catch (Exception ex) { errorMessage = ex.Message; loading = false; StateHasChanged(); }
         }
 
-        /// <summary>Cancel any in-flight search.</summary>
         private void CancelSearch()
         {
             if (_searchCts != null)
@@ -217,10 +234,7 @@
             }
         }
 
-        protected async Task ShowFile(string Id)
-        {
-            // placeholder for future detail view
-        }
+        protected async Task ShowFile(string Id) { }
 
         public void Dispose()
         {

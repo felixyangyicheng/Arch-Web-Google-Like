@@ -46,9 +46,8 @@ namespace Google_Like_Blazor.Controllers
                 // Cache for 1 hour in browser, 1 day in CDN
                 Response.Headers.CacheControl = "public, max-age=3600, s-maxage=86400";
 
-                var ms = new MemoryStream(db.Content);
                 var mime = db.Type == "application/pdf" ? "application/pdf" : "application/msword";
-                return File(ms, mime);
+                return File(db.Content, mime);
             }
             catch (Exception ex)
             {

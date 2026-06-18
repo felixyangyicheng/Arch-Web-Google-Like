@@ -95,6 +95,9 @@ public class Program
 
         });
 
+        // Health check endpoint (used by Caddy health_uri /health)
+        app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
         app.Run();
     }
 }

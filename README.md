@@ -101,12 +101,20 @@ Databases (dual-backend)
 - **`IAsyncEnumerable<T>` streaming search** — implemented `SearchInContentAsyncEnum` with `yield return` + `CancellationToken` on both backends
 - **`[EnumeratorCancellation]`** attribute for proper cancellation propagation
 
-#### 🐛 Bug Fixes
+#### 🐛 Bug Fixes (round 1)
 - **`Parallel.ForEach` async void** → **`Parallel.ForEachAsync`** — old pattern silently swallowed exceptions and had undefined behavior
 - **`FileController.GetOne`** — removed `.Result` blocking, added `await` + null-check (404) + ETag + Cache-Control
 - **`CreateAsync` / `UpdateAsync`** — replaced `IsCompletedSuccessfully` anti-pattern with proper `await` + result inspection
 - **`FileService` secondary constructor** — now properly injects `PdfTextCache` (was null → NRE on search)
 - **`Regex.Escape`** — search keywords are now escaped before regex building (was injecting raw user input into regex)
+
+#### 🐛 Bug Fixes (round 2 — UX-critical)
+- **Missing `/health` endpoint** — Caddy was checking a non-existent route; added `MapGet("/health", ...)` returning healthy + timestamp
+- **SearchBarItem `@onchange` → `@oninput`** — search only fired on blur (click away). Now fires on every keystroke so the 300ms debounce actually works
+- **`OnParametersSetAsync` ran on every render** — Blazor calls this on every parameter/state change. Added `_initialized` guard so initial search only runs once
+- **`MemoryStream` in FileController** — replaced `new MemoryStream(db.Content)` with `File(db.Content, mime)` directly returning byte[] — avoids copying entire file to managed heap
+- **`ErrorBoundary`** — search results wrapped in `<ErrorBoundary>` so a rendering exception shows a "Retry" button instead of a blank page
+- **Streaming search wired to UI** — main search `InputChanged` now uses `await foreach` + `SearchInContentAsyncEnum` so results appear incrementally as they're found, not all at once
 
 #### 🧹 Code Quality
 - **GlobalUsing.cs**: removed 11 unused/implicit imports

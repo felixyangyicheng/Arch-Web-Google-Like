@@ -3,9 +3,9 @@
 
 <MudText Typo="Typo.h4" GutterBottom="true">Search</MudText>
 
-@* ── Main search bar (debounced, with filename + content search) ── *@
+@* ── Main search bar (debounced 300ms, streaming IAsyncEnumerable results) ── *@
 <MudAlert Severity="Severity.Info" Dense="true" Class="mb-2">
-    Main search — debounced 300ms, searches filenames then full text
+    Main search — debounced 300ms, results stream in as they are found
 </MudAlert>
 <SearchBarItem OnSearchChanged="InputChanged"></SearchBarItem>
 
@@ -18,7 +18,7 @@
 
 <MudGrid>
     <MudItem xs="12" sm="4">
-        <MudAlert Severity="Severity.Warning" Dense="true">Parallel.ForEachAsync (across files + pages)</MudAlert>
+        <MudAlert Severity="Severity.Warning" Dense="true">Parallel.ForEachAsync (files + pages)</MudAlert>
         <SearchBarItem OnSearchChanged="InputChangedFor"></SearchBarItem>
     </MudItem>
     <MudItem xs="12" sm="4">
@@ -26,54 +26,78 @@
         <SearchBarItem OnSearchChanged="InputChangedTaskWhenAll"></SearchBarItem>
     </MudItem>
     <MudItem xs="12" sm="4">
-        <MudAlert Severity="Severity.Warning" Dense="true">Parallel.ForEachAsync (across files)</MudAlert>
+        <MudAlert Severity="Severity.Warning" Dense="true">Parallel.ForEachAsync (files only)</MudAlert>
         <SearchBarItem OnSearchChanged="InputChangedParalell"></SearchBarItem>
     </MudItem>
 </MudGrid>
 
 <MudDivider Class="my-4" />
 
-@* ── Results section ── *@
-
-@if (loading)
+@* ── Error display ── *@
+@if (!string.IsNullOrWhiteSpace(errorMessage))
 {
-    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" Class="mr-2" />
-    <MudText Typo="Typo.caption" Inline="true">Searching...</MudText>
-}
-else if (!string.IsNullOrWhiteSpace(SearchWord) && FileCount == 0)
-{
-    <MudAlert Severity="Severity.Info" Class="mt-4">
-        No results found for <b>@SearchWord</b>. Try a different keyword or upload more PDFs.
+    <MudAlert Severity="Severity.Error" Class="mt-4" Variant="Variant.Filled">
+        @errorMessage
+        <MudButton Size="Size.Small" Variant="Variant.Text" Class="ml-4"
+                   OnClick="() => errorMessage = null">
+            Dismiss
+        </MudButton>
     </MudAlert>
 }
-else if (FileCount > 0)
-{
-    <p>@FileCount result(s), in @elapsedMs ms</p>
 
-    <MudExpansionPanels Dense="true">
-        @foreach (var f in files)
+@* ── Results section ── *@
+<ErrorBoundary>
+    <ChildContent>
+        @if (loading)
         {
-            <MudExpansionPanel Text="@f.FileName">
-                <MudGrid>
-                    <MudItem xs="12" sm="12" lg="3">
-                        <MudCard Style="overflow:auto">
-                            <MudCardHeader>
-                                @f.FileName
-                            </MudCardHeader>
-                            <MudCardContent Style="max-height:450px; overflow-y:scroll">
-                                @((MarkupString)f.TextToPreview)
-                            </MudCardContent>
-                        </MudCard>
-                    </MudItem>
-                    <MudItem xs="12" sm="12" lg="9">
-                        <embed height="750vh" width="100%"
-                               type="application/pdf"
-                               src="api/file/@(f.Id)" />
-                    </MudItem>
-                </MudGrid>
-            </MudExpansionPanel>
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" Class="mr-2" />
+            <MudText Typo="Typo.caption" Inline="true">Searching...</MudText>
         }
-    </MudExpansionPanels>
-}
+        else if (!string.IsNullOrWhiteSpace(SearchWord) && FileCount == 0)
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-4">
+                No results found for <b>@SearchWord</b>. Try a different keyword or upload more PDFs.
+            </MudAlert>
+        }
+        else if (FileCount > 0)
+        {
+            <p>@FileCount result(s), in @elapsedMs ms</p>
 
-@code { }
+            <MudExpansionPanels Dense="true">
+                @foreach (var f in files)
+                {
+                    <MudExpansionPanel Text="@f.FileName">
+                        <MudGrid>
+                            <MudItem xs="12" sm="12" lg="3">
+                                <MudCard Style="overflow:auto">
+                                    <MudCardHeader>@f.FileName</MudCardHeader>
+                                    <MudCardContent Style="max-height:450px; overflow-y:scroll">
+                                        @((MarkupString)f.TextToPreview)
+                                    </MudCardContent>
+                                </MudCard>
+                            </MudItem>
+                            <MudItem xs="12" sm="12" lg="9">
+                                <embed height="750vh" width="100%"
+                                       type="application/pdf"
+                                       src="api/file/@(f.Id)" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudExpansionPanel>
+                }
+            </MudExpansionPanels>
+        }
+    </ChildContent>
+    <ErrorContent>
+        <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mt-4">
+            An unexpected error occurred while rendering results.
+            <MudButton Size="Size.Small" Variant="Variant.Text" Class="ml-4"
+                       OnClick="@Recover">
+                Retry
+            </MudButton>
+        </MudAlert>
+    </ErrorContent>
+</ErrorBoundary>
+
+@code {
+    private void Recover() => StateHasChanged();
+}
